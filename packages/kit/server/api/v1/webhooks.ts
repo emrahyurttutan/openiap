@@ -43,7 +43,7 @@ export async function readWebhookJsonBody(request: Request): Promise<unknown> {
 // - Apple ASN does not support custom Authorization headers, so the
 //   project's API key is encoded in the path: kit gives each project a
 //   webhook URL of the form
-//     https://kit.openiap.dev/v1/webhooks/{apiKey}
+//     https://iap.biapp.com.tr/v1/webhooks/{apiKey}
 //   to register in App Store Connect. Platform-specific /apple and
 //   /google aliases remain supported for existing store-console wiring.
 //   The path segment behaves like a capability token; rotating the

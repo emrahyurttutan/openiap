@@ -89,7 +89,7 @@ export default function AiAssistantsPage() {
       </h2>
       <p>
         Codex and Claude Code can use IAPKit as an MCP-backed plugin through{" "}
-        <code>https://kit.openiap.dev/mcp</code>. The plugin uses your IAPKit
+        <code>https://iap.biapp.com.tr/mcp</code>. The plugin uses your IAPKit
         secret admin key, not the app&apos;s publishable key and not an OpenAI,
         ChatGPT, Anthropic, or Claude API key. See the{" "}
         <Link
@@ -117,7 +117,7 @@ export default function AiAssistantsPage() {
         attachment rather than inline user input:
       </p>
       <CodeBlock language="text">
-        {`Use https://kit.openiap.dev/llms-full.txt as reference.
+        {`Use https://iap.biapp.com.tr/llms-full.txt as reference.
 
 Question: What status codes does /v1/purchase/verify return, and
 when does it carry a Retry-After header?`}
@@ -128,7 +128,7 @@ when does it carry a Retry-After header?`}
       </h3>
       <CodeBlock language="bash">
         {`# Pipe the full reference into a local model or script.
-curl -s https://kit.openiap.dev/llms-full.txt | \\
+curl -s https://iap.biapp.com.tr/llms-full.txt | \\
   your-llm-cli --system-from-stdin`}
       </CodeBlock>
 
@@ -139,8 +139,8 @@ curl -s https://kit.openiap.dev/llms-full.txt | \\
         If your assistant supports external knowledge sources (Claude projects,
         Cursor rules, OpenAI Assistants retrieval, LangChain / LlamaIndex
         document loaders), register{" "}
-        <code>https://kit.openiap.dev/llms.txt</code> for routine questions and{" "}
-        <code>https://kit.openiap.dev/llms-full.txt</code> when the agent needs
+        <code>https://iap.biapp.com.tr/llms.txt</code> for routine questions and{" "}
+        <code>https://iap.biapp.com.tr/llms-full.txt</code> when the agent needs
         to reason about data model or operational behavior. Both files are
         content-typed <code>text/plain</code>, so standard URL loaders work
         without a custom parser.

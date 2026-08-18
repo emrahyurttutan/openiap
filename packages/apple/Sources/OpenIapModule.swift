@@ -43,7 +43,7 @@ public final class OpenIapModule: NSObject, OpenIapModuleProtocol {
     public static let shared = OpenIapModule()
 
     static func iapkitVerificationURL(baseUrl: String?) throws -> URL {
-        let defaultBaseUrl = "https://kit.openiap.dev"
+        let defaultBaseUrl = "https://iap.biapp.com.tr"
         let trimmedBaseUrl = baseUrl?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         var normalizedBaseUrl = trimmedBaseUrl.isEmpty ? defaultBaseUrl : trimmedBaseUrl
 

@@ -5,7 +5,7 @@ Model Context Protocol server for IAPKit. It exposes `iapkit_*` tools
 analytics, webhook simulation, store sync jobs) to Codex, Claude Code,
 and any other MCP client.
 
-The hosted deployment lives at `https://kit.openiap.dev/mcp`. This
+The hosted deployment lives at `https://iap.biapp.com.tr/mcp`. This
 package is what you run for local development and unreleased PR
 testing. Full user-facing setup docs:
 [openiap.dev/docs/guides/mcp-server](https://openiap.dev/docs/guides/mcp-server).
@@ -43,7 +43,7 @@ Codex (`~/.codex/config.toml`):
 
 ```toml
 [mcp_servers.openiap]
-url = "https://kit.openiap.dev/mcp"
+url = "https://iap.biapp.com.tr/mcp"
 bearer_token_env_var = "IAPKIT_API_KEY"
 default_tools_approval_mode = "prompt"
 ```
@@ -51,7 +51,7 @@ default_tools_approval_mode = "prompt"
 Claude Code:
 
 ```bash
-claude mcp add --transport http openiap https://kit.openiap.dev/mcp \
+claude mcp add --transport http openiap https://iap.biapp.com.tr/mcp \
   --header "Authorization: Bearer ${IAPKIT_API_KEY}"
 ```
 

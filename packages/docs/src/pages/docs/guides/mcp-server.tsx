@@ -32,7 +32,7 @@ function MCPServer() {
         subscriptions, and exposes project tools that AI coding agents can call
         through MCP. Create or open an IAPKit project at{' '}
         <a
-          href="https://kit.openiap.dev"
+          href="https://iap.biapp.com.tr"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -55,21 +55,21 @@ function MCPServer() {
           <li>
             IAPKit dashboard:{' '}
             <a
-              href="https://kit.openiap.dev"
+              href="https://iap.biapp.com.tr"
               target="_blank"
               rel="noopener noreferrer"
             >
-              https://kit.openiap.dev
+              https://iap.biapp.com.tr
             </a>
           </li>
           <li>
             Hosted endpoint:{' '}
             <a
-              href="https://kit.openiap.dev/mcp"
+              href="https://iap.biapp.com.tr/mcp"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <code>https://kit.openiap.dev/mcp</code>
+              <code>https://iap.biapp.com.tr/mcp</code>
             </a>
           </li>
           <li>
@@ -147,7 +147,7 @@ export IAPKIT_API_KEY="openiap-kit_sk_<your-secret-key>"`}</CodeBlock>
           <code>/plugin install openiap@openiap</code> instead. If you do not
           want the plugin bundle, register the hosted MCP server directly:
         </p>
-        <CodeBlock language="bash">{`claude mcp add --transport http openiap https://kit.openiap.dev/mcp \\
+        <CodeBlock language="bash">{`claude mcp add --transport http openiap https://iap.biapp.com.tr/mcp \\
   --header "Authorization: Bearer \${IAPKIT_API_KEY}"`}</CodeBlock>
         <p>
           Contributors working inside the OpenIAP monorepo get the same server
@@ -167,7 +167,7 @@ export IAPKIT_API_KEY="openiap-kit_sk_<your-secret-key>"`}</CodeBlock>
           variable instead of hardcoding it into config files or mobile code.
         </p>
         <CodeBlock language="toml">{`[mcp_servers.openiap]
-url = "https://kit.openiap.dev/mcp"
+url = "https://iap.biapp.com.tr/mcp"
 bearer_token_env_var = "IAPKIT_API_KEY"
 default_tools_approval_mode = "prompt"`}</CodeBlock>
         <p>

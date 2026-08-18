@@ -33,7 +33,7 @@ struct SubscriptionFlowScreen: View {
            !value.isEmpty {
             return value
         }
-        return ProcessInfo.processInfo.environment["IAPKIT_BASE_URL"] ?? "https://kit.openiap.dev"
+        return ProcessInfo.processInfo.environment["IAPKIT_BASE_URL"] ?? "https://iap.biapp.com.tr"
     }
 
     private let iapkitExampleUserId = "martie-e2e-user"

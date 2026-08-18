@@ -5,7 +5,7 @@ import XCTest
 final class VerifyPurchaseWithProviderTests: XCTestCase {
 
     func testIapkitVerificationURLUsesHostedDefaultForNilOrBlankBaseUrl() throws {
-        let expectedUrl = "https://kit.openiap.dev/v1/purchase/verify"
+        let expectedUrl = "https://iap.biapp.com.tr/v1/purchase/verify"
 
         XCTAssertEqual(expectedUrl, try OpenIapModule.iapkitVerificationURL(baseUrl: nil).absoluteString)
         XCTAssertEqual(expectedUrl, try OpenIapModule.iapkitVerificationURL(baseUrl: " \n\t ").absoluteString)
@@ -23,9 +23,9 @@ final class VerifyPurchaseWithProviderTests: XCTestCase {
         let invalidBaseUrls = [
             "localhost:4174",
             "https://user:password@kit.openiap.dev",
-            "https://kit.openiap.dev/prefix",
-            "https://kit.openiap.dev?environment=local",
-            "https://kit.openiap.dev#fragment",
+            "https://iap.biapp.com.tr/prefix",
+            "https://iap.biapp.com.tr?environment=local",
+            "https://iap.biapp.com.tr#fragment",
             "http://127.0.0.1:0",
             "http://127.0.0.1:65536",
             "http://127.0.0.1:not-a-port",
@@ -152,7 +152,7 @@ final class VerifyPurchaseWithProviderTests: XCTestCase {
     }
 
     func testIapkitRequestReportsTheSpecItWasBuiltAgainst() throws {
-        let url = try XCTUnwrap(URL(string: "https://kit.openiap.dev/v1/purchase/verify"))
+        let url = try XCTUnwrap(URL(string: "https://iap.biapp.com.tr/v1/purchase/verify"))
         let request = OpenIapModule.makeIapkitRequest(
             url: url,
             apiKey: "  iapkit_pk_test  ",
@@ -183,7 +183,7 @@ final class VerifyPurchaseWithProviderTests: XCTestCase {
     }
 
     func testIapkitRequestOmitsAuthorizationForABlankApiKey() throws {
-        let url = try XCTUnwrap(URL(string: "https://kit.openiap.dev/v1/purchase/verify"))
+        let url = try XCTUnwrap(URL(string: "https://iap.biapp.com.tr/v1/purchase/verify"))
 
         for blank in [nil, "", "   "] as [String?] {
             let request = OpenIapModule.makeIapkitRequest(

@@ -52,7 +52,7 @@ type V1AppVariables = {
 const app = new Hono<{ Variables: V1AppVariables }>();
 
 const DEV_BASE_URL = "http://localhost:3000";
-const PROD_BASE_URL = "https://kit.openiap.dev";
+const PROD_BASE_URL = "https://iap.biapp.com.tr";
 
 const specUrl =
   process.env.APP_ENV === "development"

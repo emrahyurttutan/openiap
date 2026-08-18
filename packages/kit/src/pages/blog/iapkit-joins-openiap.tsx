@@ -156,7 +156,7 @@ export default function IapkitJoinsOpenIap() {
           As part of this transition, <strong>the domain has also moved</strong>
           . IAPKit now lives at{" "}
           <a
-            href="https://kit.openiap.dev"
+            href="https://iap.biapp.com.tr"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -297,7 +297,7 @@ export default function IapkitJoinsOpenIap() {
         <p>
           Building something with IAPKit?{" "}
           <a
-            href="https://kit.openiap.dev"
+            href="https://iap.biapp.com.tr"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -22,7 +22,7 @@ describe("IAPKit MCP route handler", () => {
     const initEvent = parseSseJson(await initResponse.text());
     expect(initEvent.result.serverInfo).toMatchObject({
       name: "iapkit-mcp",
-      websiteUrl: "https://kit.openiap.dev",
+      websiteUrl: "https://iap.biapp.com.tr",
     });
 
     const toolsResponse = await postMcp(

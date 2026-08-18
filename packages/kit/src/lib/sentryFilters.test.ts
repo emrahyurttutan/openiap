@@ -15,7 +15,7 @@ describe("applySentryEventFilters", () => {
           },
         },
       ],
-      request: { url: "https://kit.openiap.dev/intu/project/intu/apikeys" },
+      request: { url: "https://iap.biapp.com.tr/intu/project/intu/apikeys" },
     };
 
     const result = applySentryEventFilters(event, {
@@ -36,7 +36,7 @@ describe("applySentryEventFilters", () => {
           },
         },
       ],
-      request: { url: "https://kit.openiap.dev/intu/project/intu/apikeys" },
+      request: { url: "https://iap.biapp.com.tr/intu/project/intu/apikeys" },
     };
 
     const result = applySentryEventFilters(event, {
@@ -58,7 +58,7 @@ describe("applySentryEventFilters", () => {
           },
         },
       ],
-      request: { url: "https://kit.openiap.dev/intu/project/intu/apikeys" },
+      request: { url: "https://iap.biapp.com.tr/intu/project/intu/apikeys" },
     };
 
     const result = applySentryEventFilters(event, {
@@ -82,7 +82,7 @@ describe("applySentryEventFilters", () => {
           },
         },
       ],
-      request: { url: "https://kit.openiap.dev/intu/project/intu/apikeys" },
+      request: { url: "https://iap.biapp.com.tr/intu/project/intu/apikeys" },
     };
 
     const result = applySentryEventFilters(event, {

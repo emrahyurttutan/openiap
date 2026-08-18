@@ -528,7 +528,7 @@ await iap.request_purchase(props)`}</CodeBlock>
             verification (your own backend or IAPKit — open source under MIT,
             with hosted validation and analytics free at{' '}
             <a
-              href="https://kit.openiap.dev"
+              href="https://iap.biapp.com.tr"
               target="_blank"
               rel="noopener noreferrer"
             >

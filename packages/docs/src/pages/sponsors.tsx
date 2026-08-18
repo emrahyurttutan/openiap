@@ -217,7 +217,7 @@ function Sponsors() {
           <div>
             <span>Shared infrastructure</span>
             <a
-              href="https://kit.openiap.dev"
+              href="https://iap.biapp.com.tr"
               target="_blank"
               rel="noopener noreferrer"
             >

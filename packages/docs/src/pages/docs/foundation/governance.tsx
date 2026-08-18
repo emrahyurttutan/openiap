@@ -399,7 +399,7 @@ function Governance() {
         <p>
           The IAPKit instance at{' '}
           <a
-            href="https://kit.openiap.dev"
+            href="https://iap.biapp.com.tr"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -243,7 +243,7 @@ public class KitApiClientTests
     public void KitApi_DefaultsBaseUrlAndTrimsTrailingSlash()
     {
         var defaulted = OpenIapClient.KitApi(new KitApiOptions { ApiKey = "k" });
-        Assert.Equal("https://kit.openiap.dev", defaulted.BaseUrl);
+        Assert.Equal("https://iap.biapp.com.tr", defaulted.BaseUrl);
 
         var trimmed = OpenIapClient.KitApi(new KitApiOptions
         {

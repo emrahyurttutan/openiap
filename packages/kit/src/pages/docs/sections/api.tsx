@@ -319,7 +319,7 @@ async function refreshEntitlements(
   let response: Response;
   try {
     response = await fetch(
-      \`https://kit.openiap.dev/v1/subscriptions/entitlements?userId=\${encodeURIComponent(userId)}\`,
+      \`https://iap.biapp.com.tr/v1/subscriptions/entitlements?userId=\${encodeURIComponent(userId)}\`,
       {
         headers: {
           Authorization: \`Bearer \${iapkitPublishableKey}\`,

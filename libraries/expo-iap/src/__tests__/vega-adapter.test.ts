@@ -1246,7 +1246,7 @@ describe('Amazon Vega Expo adapter', () => {
         fetchUserProfileAccessConsentStatus: false,
       });
       expect(fetchMock).toHaveBeenCalledWith(
-        'https://kit.openiap.dev/v1/purchase/verify',
+        'https://iap.biapp.com.tr/v1/purchase/verify',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({

@@ -6,7 +6,7 @@ import LanguageTabs from '../../components/LanguageTabs';
 import SEO from '../../components/SEO';
 import { useScrollToHash } from '../../hooks/useScrollToHash';
 
-const IAPKIT_URL = 'https://kit.openiap.dev';
+const IAPKIT_URL = 'https://iap.biapp.com.tr';
 
 function KitBackend() {
   useScrollToHash();
@@ -712,7 +712,7 @@ async function refreshEntitlements(
   let response: Response;
   try {
     response = await fetch(
-      \`https://kit.openiap.dev/v1/subscriptions/entitlements?userId=\${encodeURIComponent(userId)}\`,
+      \`https://iap.biapp.com.tr/v1/subscriptions/entitlements?userId=\${encodeURIComponent(userId)}\`,
       {
         headers: {
           Authorization: \`Bearer \${iapkitPublishableKey}\`,
@@ -1127,20 +1127,20 @@ var clientPayload = payloadResponse.ClientPayload;`}</CodeBlock>
           either step returns <code>PRODUCT_NOT_FOUND</code>.
         </p>
         <CodeBlock language="bash">{`curl -X POST \\
-  "https://kit.openiap.dev/v1/products/sync/ios?direction=pull&dryRun=false" \\
+  "https://iap.biapp.com.tr/v1/products/sync/ios?direction=pull&dryRun=false" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>"
 
 # Poll the returned jobId until status is succeeded.
-curl "https://kit.openiap.dev/v1/products/sync/jobs/<jobId>" \\
+curl "https://iap.biapp.com.tr/v1/products/sync/jobs/<jobId>" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>"`}</CodeBlock>
         <CodeBlock language="bash">{`curl -X PUT \\
-  "https://kit.openiap.dev/v1/products/client-payload/premium_monthly?platform=IOS" \\
+  "https://iap.biapp.com.tr/v1/products/client-payload/premium_monthly?platform=IOS" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>" \\
   -H "Content-Type: application/json" \\
   -d '{"format":"toml","body":"[access]\\nmax_items = 10","expectedVersion":3}'
 
 curl -X DELETE \\
-  "https://kit.openiap.dev/v1/products/client-payload/premium_monthly?platform=IOS&expectedVersion=4" \\
+  "https://iap.biapp.com.tr/v1/products/client-payload/premium_monthly?platform=IOS&expectedVersion=4" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>"`}</CodeBlock>
         <p>
           MCP exposes these routes as <code>iapkit_get_client_payload</code>,{' '}
@@ -1299,7 +1299,7 @@ curl -X DELETE \\
       "args": ["@hyodotdev/openiap-mcp-server"],
       "env": {
         "IAPKIT_API_KEY": "openiap-kit_sk_<your-secret-key>",
-        "IAPKIT_BASE_URL": "https://kit.openiap.dev"
+        "IAPKIT_BASE_URL": "https://iap.biapp.com.tr"
       }
     }
   }

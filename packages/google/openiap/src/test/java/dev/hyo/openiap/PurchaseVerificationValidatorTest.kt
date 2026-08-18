@@ -256,7 +256,7 @@ class PurchaseVerificationValidatorTest {
             FakeHttpURLConnection(200, """{"store":"google","isValid":true,"state":"ENTITLED"}""")
         }
 
-        assertEquals("https://kit.openiap.dev/v1/purchase/verify", requestedEndpoint)
+        assertEquals("https://iap.biapp.com.tr/v1/purchase/verify", requestedEndpoint)
     }
 
     @Test
@@ -277,7 +277,7 @@ class PurchaseVerificationValidatorTest {
             FakeHttpURLConnection(200, """{"store":"google","isValid":true,"state":"ENTITLED"}""")
         }
 
-        assertEquals("https://kit.openiap.dev/v1/purchase/verify", requestedEndpoint)
+        assertEquals("https://iap.biapp.com.tr/v1/purchase/verify", requestedEndpoint)
     }
 
     @Test
@@ -315,9 +315,9 @@ class PurchaseVerificationValidatorTest {
             "kit.openiap.dev/not-an-origin",
             "ftp://kit.openiap.dev",
             "https://user:password@kit.openiap.dev",
-            "https://kit.openiap.dev/prefix",
-            "https://kit.openiap.dev?environment=local",
-            "https://kit.openiap.dev#fragment",
+            "https://iap.biapp.com.tr/prefix",
+            "https://iap.biapp.com.tr?environment=local",
+            "https://iap.biapp.com.tr#fragment",
             "http://127.0.0.1:0",
             "http://127.0.0.1:65536",
             "http://127.0.0.1:not-a-port"

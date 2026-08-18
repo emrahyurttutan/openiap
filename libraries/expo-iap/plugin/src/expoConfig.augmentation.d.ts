@@ -42,7 +42,7 @@ export type AmazonPlatformOptions = {
 type BaseExpoIapOptions = {
   /**
    * IAPKit project key for managed receipt verification.
-   * Get your project key from https://kit.openiap.dev.
+   * Get your project key from https://iap.biapp.com.tr.
    * This will be available via `Constants.expoConfig?.extra?.iapkitApiKey`.
    */
   iapkitApiKey?: string;

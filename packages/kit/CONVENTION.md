@@ -1,7 +1,7 @@
 # Project Conventions
 
 `packages/kit` is the receipt-validation SaaS at
-[kit.openiap.dev](https://kit.openiap.dev) — React 19 SPA + Hono on
+[kit.openiap.dev](https://iap.biapp.com.tr) — React 19 SPA + Hono on
 Bun + Convex backend, all shipped as one Fly.io binary. **Unlike other
 packages in this monorepo, this is a deployable application, not a
 publishable library.** It does not consume `@hyodotdev/openiap-gql`

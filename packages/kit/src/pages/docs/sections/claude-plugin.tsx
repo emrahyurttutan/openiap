@@ -64,7 +64,7 @@ export default function ClaudePluginPage() {
               Remote MCP URL
             </div>
             <code className="mt-1 block break-all rounded border border-border bg-background px-3 py-2">
-              https://kit.openiap.dev/mcp
+              https://iap.biapp.com.tr/mcp
             </code>
           </div>
           <div>
@@ -98,7 +98,7 @@ export IAPKIT_API_KEY="openiap-kit_sk_<your-secret-key>"`}
       </CodeBlock>
       <p>Without the plugin bundle, register the hosted MCP server directly:</p>
       <CodeBlock language="bash">
-        {`claude mcp add --transport http openiap https://kit.openiap.dev/mcp \\
+        {`claude mcp add --transport http openiap https://iap.biapp.com.tr/mcp \\
   --header "Authorization: Bearer \${IAPKIT_API_KEY}"`}
       </CodeBlock>
 

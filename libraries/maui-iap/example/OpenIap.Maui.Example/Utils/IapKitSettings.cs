@@ -9,7 +9,7 @@ internal static class IapKitSettings
     // place an openiap-kit_sk_ secret admin key in this app configuration.
     private const string ApiKeyPreferenceKey = "openiap.example.iapkit.apiKey";
     private const string BaseUrlPreferenceKey = "openiap.example.iapkit.baseUrl";
-    private const string DefaultBaseUrl = "https://kit.openiap.dev";
+    private const string DefaultBaseUrl = "https://iap.biapp.com.tr";
 
     public static string? ApiKey =>
         FirstNonBlank(

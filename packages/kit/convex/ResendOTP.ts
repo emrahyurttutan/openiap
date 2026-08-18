@@ -165,8 +165,8 @@ const createOTPEmailTemplate = (code: string, lang: "en" | "ko" | "ja") => {
 <body>
   <div class="container">
     <div class="header">
-      <a href="https://kit.openiap.dev" class="logo">
-        <img src="https://kit.openiap.dev/logo.webp" alt="IAPKit Logo" class="logo-icon" />
+      <a href="https://iap.biapp.com.tr" class="logo">
+        <img src="https://iap.biapp.com.tr/logo.webp" alt="IAPKit Logo" class="logo-icon" />
         <span class="logo-text">IAPKit</span>
       </a>
     </div>

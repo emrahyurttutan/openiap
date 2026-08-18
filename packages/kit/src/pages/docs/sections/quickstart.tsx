@@ -16,7 +16,7 @@ export default function QuickstartPage() {
       <p>
         Sign in with GitHub or email OTP on{" "}
         <a
-          href="https://kit.openiap.dev"
+          href="https://iap.biapp.com.tr"
           className="text-primary underline"
           target="_blank"
           rel="noopener noreferrer"
@@ -143,7 +143,7 @@ export default function QuickstartPage() {
       </p>
 
       <CodeBlock title="Apple App Store" language="bash">
-        {`curl -X POST https://kit.openiap.dev/v1/purchase/verify \\
+        {`curl -X POST https://iap.biapp.com.tr/v1/purchase/verify \\
   -H "Authorization: Bearer openiap-kit_pk_<your-publishable-key>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -154,7 +154,7 @@ export default function QuickstartPage() {
       </CodeBlock>
 
       <CodeBlock title="Google Play" language="bash">
-        {`curl -X POST https://kit.openiap.dev/v1/purchase/verify \\
+        {`curl -X POST https://iap.biapp.com.tr/v1/purchase/verify \\
   -H "Authorization: Bearer openiap-kit_pk_<your-publishable-key>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -165,7 +165,7 @@ export default function QuickstartPage() {
       </CodeBlock>
 
       <CodeBlock title="Meta Horizon (Quest)" language="bash">
-        {`curl -X POST https://kit.openiap.dev/v1/purchase/verify \\
+        {`curl -X POST https://iap.biapp.com.tr/v1/purchase/verify \\
   -H "Authorization: Bearer openiap-kit_pk_<your-publishable-key>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -176,7 +176,7 @@ export default function QuickstartPage() {
       </CodeBlock>
 
       <CodeBlock title="Amazon Appstore" language="bash">
-        {`curl -X POST https://kit.openiap.dev/v1/purchase/verify \\
+        {`curl -X POST https://iap.biapp.com.tr/v1/purchase/verify \\
   -H "Authorization: Bearer openiap-kit_pk_<your-publishable-key>" \\
   -H "Content-Type: application/json" \\
   -d '{

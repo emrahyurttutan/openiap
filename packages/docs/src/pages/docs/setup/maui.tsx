@@ -389,7 +389,7 @@ using OpenIap.Maui;
 var kit = OpenIapClient.KitApi(new KitApiOptions
 {
     ApiKey = "openiap-kit_pk_<your-publishable-key>",
-    BaseUrl = "https://kit.openiap.dev",
+    BaseUrl = "https://iap.biapp.com.tr",
 });
 
 StatusResponse status = await kit.StatusAsync("user_123");

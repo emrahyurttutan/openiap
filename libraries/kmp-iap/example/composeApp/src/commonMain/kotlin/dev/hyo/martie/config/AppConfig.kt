@@ -10,7 +10,7 @@ package dev.hyo.martie.config
 expect object AppConfig {
     /**
      * IAPKit publishable key for purchase verification.
-     * Get an openiap-kit_pk_ key from https://kit.openiap.dev
+     * Get an openiap-kit_pk_ key from https://iap.biapp.com.tr
      */
     val iapkitApiKey: String
 }

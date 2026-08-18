@@ -6,7 +6,7 @@ import { isIgnoredResourceUrl } from "./e2e-web-sites.mjs";
 describe("web E2E resource URL filtering", () => {
   it("ignores only attributable favicon and explicit third-party URLs", () => {
     assert.equal(
-      isIgnoredResourceUrl("https://kit.openiap.dev/favicon.ico"),
+      isIgnoredResourceUrl("https://iap.biapp.com.tr/favicon.ico"),
       true,
     );
     assert.equal(
@@ -35,11 +35,11 @@ describe("web E2E resource URL filtering", () => {
 
   it("keeps same-origin and unrelated 404 URLs actionable", () => {
     assert.equal(
-      isIgnoredResourceUrl("https://kit.openiap.dev/missing.js"),
+      isIgnoredResourceUrl("https://iap.biapp.com.tr/missing.js"),
       false,
     );
     assert.equal(
-      isIgnoredResourceUrl("https://kit.openiap.dev/docs/analytics/missing.js"),
+      isIgnoredResourceUrl("https://iap.biapp.com.tr/docs/analytics/missing.js"),
       false,
     );
     assert.equal(
@@ -47,7 +47,7 @@ describe("web E2E resource URL filtering", () => {
       false,
     );
     assert.equal(
-      isIgnoredResourceUrl("https://kit.openiap.dev/fonts/missing.woff2"),
+      isIgnoredResourceUrl("https://iap.biapp.com.tr/fonts/missing.woff2"),
       false,
     );
   });

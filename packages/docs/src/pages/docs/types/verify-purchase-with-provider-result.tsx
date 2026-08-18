@@ -428,7 +428,7 @@ function VerifyPurchaseWithProviderResult() {
               </td>
               <td>
                 <a
-                  href="https://kit.openiap.dev"
+                  href="https://iap.biapp.com.tr"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -25,7 +25,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.util.Locale
 
-private const val DEFAULT_IAPKIT_ENDPOINT = "https://kit.openiap.dev/v1/purchase/verify"
+private const val DEFAULT_IAPKIT_ENDPOINT = "https://iap.biapp.com.tr/v1/purchase/verify"
 private const val IAPKIT_VERIFY_PATH = "/v1/purchase/verify"
 private val gson = Gson()
 

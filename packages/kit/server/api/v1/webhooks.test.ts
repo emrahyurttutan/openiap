@@ -49,20 +49,20 @@ afterEach(() => {
 describe("pubSubOidcAudiences", () => {
   it("accepts concrete push endpoint audience when configured for the origin", () => {
     const audiences = helpers.pubSubOidcAudiences(
-      "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret",
-      "https://kit.openiap.dev/",
+      "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret",
+      "https://iap.biapp.com.tr/",
     );
 
-    expect(audiences).toContain("https://kit.openiap.dev/");
-    expect(audiences).toContain("https://kit.openiap.dev");
+    expect(audiences).toContain("https://iap.biapp.com.tr/");
+    expect(audiences).toContain("https://iap.biapp.com.tr");
     expect(audiences).toContain(
-      "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret",
+      "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret",
     );
   });
 
   it("does not derive endpoint audiences for a different configured host", () => {
     const audiences = helpers.pubSubOidcAudiences(
-      "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret",
+      "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret",
       "https://example.com/",
     );
 
@@ -401,7 +401,7 @@ describe("isWebhookBodyTooLarge", () => {
 
 describe("readWebhookJsonBody", () => {
   it("rejects streamed webhook bodies over the cap", async () => {
-    const request = new Request("https://kit.openiap.dev/v1/webhooks/key", {
+    const request = new Request("https://iap.biapp.com.tr/v1/webhooks/key", {
       method: "POST",
       body: JSON.stringify({ signedPayload: "a".repeat(256 * 1024) }),
     });
@@ -522,24 +522,24 @@ describe("sanitizePubSubAudienceForLog", () => {
   it("preserves webhook endpoint audience logs", () => {
     const cases = [
       [
-        "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret",
-        "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret",
+        "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret",
+        "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret",
       ],
       [
-        "https://kit.openiap.dev/v1/webhooks/apple/openiap-kit_secret",
-        "https://kit.openiap.dev/v1/webhooks/apple/openiap-kit_secret",
+        "https://iap.biapp.com.tr/v1/webhooks/apple/openiap-kit_secret",
+        "https://iap.biapp.com.tr/v1/webhooks/apple/openiap-kit_secret",
       ],
       [
-        "https://kit.openiap.dev/v1/webhooks/google/openiap-kit_secret",
-        "https://kit.openiap.dev/v1/webhooks/google/openiap-kit_secret",
+        "https://iap.biapp.com.tr/v1/webhooks/google/openiap-kit_secret",
+        "https://iap.biapp.com.tr/v1/webhooks/google/openiap-kit_secret",
       ],
       [
-        "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret?apiKey=openiap-kit_query&token=jwt-token&id_token=id-token&jwt=jwt-token&since=1",
-        "https://kit.openiap.dev/v1/webhooks/openiap-kit_secret?apiKey=openiap-kit_query&token=jwt-token&id_token=id-token&jwt=jwt-token&since=1",
+        "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret?apiKey=openiap-kit_query&token=jwt-token&id_token=id-token&jwt=jwt-token&since=1",
+        "https://iap.biapp.com.tr/v1/webhooks/openiap-kit_secret?apiKey=openiap-kit_query&token=jwt-token&id_token=id-token&jwt=jwt-token&since=1",
       ],
       [
-        "https://kit.openiap.dev/api/v1/webhooks/openiap-kit_secret",
-        "https://kit.openiap.dev/api/v1/webhooks/openiap-kit_secret",
+        "https://iap.biapp.com.tr/api/v1/webhooks/openiap-kit_secret",
+        "https://iap.biapp.com.tr/api/v1/webhooks/openiap-kit_secret",
       ],
     ];
 

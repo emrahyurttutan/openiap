@@ -5341,7 +5341,7 @@ public data class RequestVerifyPurchaseWithIapkitProps(
     val apple: RequestVerifyPurchaseWithIapkitAppleProps? = null,
     /**
      * Available in OpenIAP Spec 2.3.1 / openiap-apple 2.4.0 / openiap-google 2.4.0.
-     * Base URL for the IAPKit server. Defaults to https://kit.openiap.dev.
+     * Base URL for the IAPKit server. Defaults to https://iap.biapp.com.tr.
      * Set this to a reachable HTTP(S) origin when self-hosting or testing a local IAPKit server.
      * The apiKey must be issued by the same IAPKit/Convex deployment as this server.
      */

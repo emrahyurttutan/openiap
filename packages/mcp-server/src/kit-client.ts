@@ -45,7 +45,7 @@ export interface KitHealthResponse {
   timestamp: string;
 }
 
-const DEFAULT_BASE_URL = "https://kit.openiap.dev";
+const DEFAULT_BASE_URL = "https://iap.biapp.com.tr";
 export const IAPKIT_MCP_LOOPBACK_HEADER = "x-iapkit-mcp-loopback";
 
 export function normalizeKitBaseUrl(baseUrl?: string): string {

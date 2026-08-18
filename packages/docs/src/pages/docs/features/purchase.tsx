@@ -787,7 +787,7 @@ async Task<bool> VerifyOnServerAsync(Purchase purchase)
         <p>
           Don&apos;t want to implement store receipt verification yourself?{' '}
           <a
-            href="https://kit.openiap.dev"
+            href="https://iap.biapp.com.tr"
             target="_blank"
             rel="noopener noreferrer"
             className="external-link"
@@ -822,7 +822,7 @@ async Task<bool> VerifyOnServerAsync(Purchase purchase)
         <Callout kind="note" title="Get a project key">
           Sign up at{' '}
           <a
-            href="https://kit.openiap.dev"
+            href="https://iap.biapp.com.tr"
             target="_blank"
             rel="noopener noreferrer"
             className="external-link"
@@ -1147,11 +1147,11 @@ async Task<bool> VerifyWithIapkitAsync(Purchase purchase)
         <Callout kind="note" title="Endpoint">
           Requests are sent to{' '}
           <a
-            href="https://kit.openiap.dev/v1/purchase/verify"
+            href="https://iap.biapp.com.tr/v1/purchase/verify"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <code>https://kit.openiap.dev/v1/purchase/verify</code>
+            <code>https://iap.biapp.com.tr/v1/purchase/verify</code>
           </a>{' '}
           with <code>Authorization: Bearer &lt;apiKey&gt;</code>. See the{' '}
           <Link to="/docs/types/verify-purchase-with-provider-props">

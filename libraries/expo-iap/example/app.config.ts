@@ -32,7 +32,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
 
   const iapPluginOptions: ExpoIapPluginOptions = {
     // IAPKit openiap-kit_pk_ publishable key. Never use openiap-kit_sk_ here.
-    // Get your API key from https://kit.openiap.dev
+    // Get your API key from https://iap.biapp.com.tr
     iapkitApiKey: process.env.EXPO_PUBLIC_IAPKIT_API_KEY,
     enableLocalDev: useLocalDev,
     localPath: {

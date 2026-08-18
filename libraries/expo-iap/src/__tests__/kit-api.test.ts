@@ -137,8 +137,8 @@ describe('kitApi requests', () => {
     });
 
     expect(fetchImpl.mock.calls.map(([url]) => url)).toEqual([
-      'https://kit.openiap.dev/v1/products/key',
-      'https://kit.openiap.dev/v1/products/key?platform=Android&includeClientPayload=true&limit=12&cursor=next+%2F+page',
+      'https://iap.biapp.com.tr/v1/products/key',
+      'https://iap.biapp.com.tr/v1/products/key?platform=Android&includeClientPayload=true&limit=12&cursor=next+%2F+page',
     ]);
     expect(() => api.products({includeClientPayload: true})).toThrow(
       'requires platform',

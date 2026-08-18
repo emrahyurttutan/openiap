@@ -127,7 +127,7 @@ const FULFILLMENT_RESULT_FULFILLED = 1;
 const RESPONSE_SUCCESS = 1;
 const PURCHASE_RESPONSE_SUCCESS = 0;
 const PURCHASE_STATE_PURCHASED = 1;
-const IAPKIT_DEFAULT_BASE_URL = 'https://kit.openiap.dev';
+const IAPKIT_DEFAULT_BASE_URL = 'https://iap.biapp.com.tr';
 const IAPKIT_VERIFY_PATH = '/v1/purchase/verify';
 const VEGA_PARSER_ERROR_MESSAGES = [
   'Cannot convert undefined value to object',

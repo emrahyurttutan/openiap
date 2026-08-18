@@ -35,7 +35,7 @@ const OPTIONAL_BASE_URL = z
   .url()
   .optional()
   .describe(
-    "Override IAPKit base URL. Defaults to IAPKIT_BASE_URL, then https://kit.openiap.dev.",
+    "Override IAPKit base URL. Defaults to IAPKIT_BASE_URL, then https://iap.biapp.com.tr.",
   );
 
 const API_KEY_PLACEHOLDER = "<IAPKIT_SECRET_KEY>";
@@ -220,7 +220,7 @@ function registerTool(
  * Creates the IAPKit MCP server and registers the `iapkit_*` tool surface.
  *
  * The returned server is configured with the package name/version metadata and
- * `https://kit.openiap.dev` as its website URL. Tool registration is performed
+ * `https://iap.biapp.com.tr` as its website URL. Tool registration is performed
  * before returning so callers can connect the server directly to stdio, HTTP,
  * or web-standard MCP transports.
  *
@@ -230,7 +230,7 @@ export function createIapKitMcpServer(): McpServer {
   const server = new McpServer({
     name: IAPKIT_MCP_SERVER_NAME,
     version: IAPKIT_MCP_SERVER_VERSION,
-    websiteUrl: "https://kit.openiap.dev",
+    websiteUrl: "https://iap.biapp.com.tr",
   });
   registerIapKitTools(server);
   return server;

@@ -1,6 +1,6 @@
 # IAPKit — full reference
 
-> Receipt-validation SaaS managed by OpenIAP. https://kit.openiap.dev
+> Receipt-validation SaaS managed by OpenIAP. https://iap.biapp.com.tr
 > Canonical implementation and documentation source:
 > github.com/hyodotdev/openiap/tree/main/packages/kit. This file summarizes the
 > deployed contract for assistants and must stay aligned with that source.
@@ -466,14 +466,14 @@ Domains under `convex/` follow a CQRS layout — each has `query.ts`,
 
 ## Related docs
 
-- [/docs](https://kit.openiap.dev/docs) — in-dashboard documentation index
-- [/docs/quickstart](https://kit.openiap.dev/docs/quickstart)
-- [/docs/projects](https://kit.openiap.dev/docs/projects) — project + key hierarchy
-- [/docs/products](https://kit.openiap.dev/docs/products) — product sync and client payload contract
-- [/docs/verification/apple](https://kit.openiap.dev/docs/verification/apple)
-- [/docs/verification/google](https://kit.openiap.dev/docs/verification/google)
-- [/docs/verification/horizon](https://kit.openiap.dev/docs/verification/horizon)
-- [/docs/api](https://kit.openiap.dev/docs/api)
-- [/docs/operations](https://kit.openiap.dev/docs/operations)
-- [/docs/ai-assistants](https://kit.openiap.dev/docs/ai-assistants) — how to consume this file
-- [/docs/release-notes](https://kit.openiap.dev/docs/release-notes)
+- [/docs](https://iap.biapp.com.tr/docs) — in-dashboard documentation index
+- [/docs/quickstart](https://iap.biapp.com.tr/docs/quickstart)
+- [/docs/projects](https://iap.biapp.com.tr/docs/projects) — project + key hierarchy
+- [/docs/products](https://iap.biapp.com.tr/docs/products) — product sync and client payload contract
+- [/docs/verification/apple](https://iap.biapp.com.tr/docs/verification/apple)
+- [/docs/verification/google](https://iap.biapp.com.tr/docs/verification/google)
+- [/docs/verification/horizon](https://iap.biapp.com.tr/docs/verification/horizon)
+- [/docs/api](https://iap.biapp.com.tr/docs/api)
+- [/docs/operations](https://iap.biapp.com.tr/docs/operations)
+- [/docs/ai-assistants](https://iap.biapp.com.tr/docs/ai-assistants) — how to consume this file
+- [/docs/release-notes](https://iap.biapp.com.tr/docs/release-notes)

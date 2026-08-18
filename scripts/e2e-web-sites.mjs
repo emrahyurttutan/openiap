@@ -9,7 +9,7 @@ const DOCS_BASE_URL = normalizeBaseUrl(
   process.env.WEB_E2E_DOCS_BASE_URL ?? "https://www.openiap.dev",
 );
 const KIT_BASE_URL = normalizeBaseUrl(
-  process.env.WEB_E2E_KIT_BASE_URL ?? "https://kit.openiap.dev",
+  process.env.WEB_E2E_KIT_BASE_URL ?? "https://iap.biapp.com.tr",
 );
 
 const VIEWPORTS = [
@@ -41,7 +41,7 @@ const SITES = [
   {
     name: "iapkit",
     baseUrl: KIT_BASE_URL,
-    canonicalOrigins: ["https://kit.openiap.dev"],
+    canonicalOrigins: ["https://iap.biapp.com.tr"],
     routes: [
       "/",
       "/docs",

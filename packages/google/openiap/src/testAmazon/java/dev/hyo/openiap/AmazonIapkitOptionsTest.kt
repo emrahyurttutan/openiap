@@ -15,7 +15,7 @@ class AmazonIapkitOptionsTest {
             ),
             apiKey = "openiap-kit_pk_test",
             apple = null,
-            baseUrl = "https://kit.openiap.dev",
+            baseUrl = "https://iap.biapp.com.tr",
             google = null,
             includeClientPayload = true,
         )
@@ -27,7 +27,7 @@ class AmazonIapkitOptionsTest {
         assertEquals(true, resolved.amazon?.sandbox)
         assertEquals("amzn1.account.test", resolved.amazon?.userId)
         assertEquals("openiap-kit_pk_test", resolved.apiKey)
-        assertEquals("https://kit.openiap.dev", resolved.baseUrl)
+        assertEquals("https://iap.biapp.com.tr", resolved.baseUrl)
         assertEquals(true, resolved.includeClientPayload)
     }
 }

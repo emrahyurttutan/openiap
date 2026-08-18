@@ -57,7 +57,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-private const val IAPKIT_BASE_URL = "https://kit.openiap.dev"
+private const val IAPKIT_BASE_URL = "https://iap.biapp.com.tr"
 private const val IAPKIT_EXAMPLE_USER_ID = "martie-e2e-user"
 
 private data class IapkitSubscriptionBindResult(

@@ -22,7 +22,7 @@ const { chromium } =
 
 // Default to localhost so the script mirrors `capture.ts` and doesn't
 // accidentally beat on production when someone runs it without
-// thinking. Override with `DOCS_CAPTURE_BASE=https://kit.openiap.dev`
+// thinking. Override with `DOCS_CAPTURE_BASE=https://iap.biapp.com.tr`
 // when you explicitly want prod screenshots.
 const BASE = process.env.DOCS_CAPTURE_BASE ?? "http://localhost:5173";
 const OUT = resolve(__dirname, "..", "..", "public", "docs", "screenshots");

@@ -63,7 +63,7 @@ export default function CodexPluginPage() {
               Remote MCP URL
             </div>
             <code className="mt-1 block break-all rounded border border-border bg-background px-3 py-2">
-              https://kit.openiap.dev/mcp
+              https://iap.biapp.com.tr/mcp
             </code>
           </div>
           <div>

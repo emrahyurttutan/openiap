@@ -244,7 +244,7 @@ Claude Code gets the same workflow surface without any install step:
   When you change a skill under `.codex/skills/`, check whether the matching
   `.claude/skills/` adapter needs the same update.
 - **MCP server**: the root `.mcp.json` registers the hosted IAPKit MCP
-  endpoint (`https://kit.openiap.dev/mcp`) as a project-scoped server.
+  endpoint (`https://iap.biapp.com.tr/mcp`) as a project-scoped server.
   Export `IAPKIT_API_KEY` before launching Claude Code to authenticate.
 
 For consumers outside this repo, `.claude-plugin/marketplace.json` publishes

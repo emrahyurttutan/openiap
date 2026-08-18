@@ -7,7 +7,7 @@ void main() {
 
   setUp(() {
     dotenv.loadFromString(
-      envString: 'IAPKIT_API_KEY=\nIAPKIT_BASE_URL=https://kit.openiap.dev\n',
+      envString: 'IAPKIT_API_KEY=\nIAPKIT_BASE_URL=https://iap.biapp.com.tr\n',
     );
   });
 

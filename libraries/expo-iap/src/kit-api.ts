@@ -244,7 +244,7 @@ type InternalRequestInit = Omit<RequestInit, "headers"> & {
   headers?: Record<string, string>;
 };
 
-const DEFAULT_BASE_URL = "https://kit.openiap.dev";
+const DEFAULT_BASE_URL = "https://iap.biapp.com.tr";
 
 // Merge the request's internal headers with kit defaults (`accept`,
 // optionally `content-type`). When `Headers` is missing — older React

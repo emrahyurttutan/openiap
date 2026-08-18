@@ -189,7 +189,7 @@ export default function ProjectsPage() {
 
       <h2 className="mt-10 text-2xl font-semibold">Example request</h2>
       <CodeBlock title="/v1/purchase/verify" language="bash">
-        {`curl -X POST https://kit.openiap.dev/v1/purchase/verify \\
+        {`curl -X POST https://iap.biapp.com.tr/v1/purchase/verify \\
   -H "Authorization: Bearer openiap-kit_pk_<your-publishable-key>" \\
   -H "Content-Type: application/json" \\
   -d '{ "store": "google", "purchaseToken": "..." }'`}

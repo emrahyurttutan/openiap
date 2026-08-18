@@ -282,7 +282,7 @@ export default function OrganizationSettings() {
               <p className="text-sm text-muted-foreground">{"URL"}</p>
               <p>
                 <a
-                  href={`https://kit.openiap.dev/${currentOrg.slug}`}
+                  href={`https://iap.biapp.com.tr/${currentOrg.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="link"

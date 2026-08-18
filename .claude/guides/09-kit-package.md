@@ -1,6 +1,6 @@
 # Kit Package (`packages/kit`)
 
-Hosted receipt-validation SaaS at [kit.openiap.dev](https://kit.openiap.dev) — React 19 SPA + Hono on Bun + Convex backend, all shipped as one Fly.io binary.
+Hosted receipt-validation SaaS at [kit.openiap.dev](https://iap.biapp.com.tr) — React 19 SPA + Hono on Bun + Convex backend, all shipped as one Fly.io binary.
 
 ## Critical: Different from Other Packages
 

@@ -2598,7 +2598,7 @@ function Releases() {
             </Link>
             , and the hosted{' '}
             <a
-              href="https://kit.openiap.dev/docs/products"
+              href="https://iap.biapp.com.tr/docs/products"
               target="_blank"
               rel="noopener noreferrer"
               className="external-link"
@@ -3529,11 +3529,11 @@ function Releases() {
             self-hosted or device-reachable local IAPKit origin. Existing
             callers continue to use{' '}
             <a
-              href="https://kit.openiap.dev"
+              href="https://iap.biapp.com.tr"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <code>https://kit.openiap.dev</code>
+              <code>https://iap.biapp.com.tr</code>
             </a>
             , while malformed non-origin values fail as developer errors. The
             implementation and physical-device receipt vertical are covered by{' '}
@@ -7045,7 +7045,7 @@ function Releases() {
               </a>{' '}
               redirect still forwards to{' '}
               <a
-                href="https://kit.openiap.dev"
+                href="https://iap.biapp.com.tr"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -7383,7 +7383,7 @@ function Releases() {
             <h5 style={{ margin: '0 0 0.5rem 0' }}>
               IAPKit verification host migrated to{' '}
               <a
-                href="https://kit.openiap.dev"
+                href="https://iap.biapp.com.tr"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -7406,7 +7406,7 @@ function Releases() {
               </a>{' '}
               to{' '}
               <a
-                href="https://kit.openiap.dev"
+                href="https://iap.biapp.com.tr"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -7438,17 +7438,17 @@ function Releases() {
               <li>
                 <strong>New:</strong>{' '}
                 <a
-                  href="https://kit.openiap.dev/v1/purchase/verify"
+                  href="https://iap.biapp.com.tr/v1/purchase/verify"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <code>https://kit.openiap.dev/v1/purchase/verify</code>
+                  <code>https://iap.biapp.com.tr/v1/purchase/verify</code>
                 </a>
               </li>
               <li>
                 API keys are now issued from{' '}
                 <a
-                  href="https://kit.openiap.dev"
+                  href="https://iap.biapp.com.tr"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="external-link"
@@ -7475,7 +7475,7 @@ function Releases() {
               </a>{' '}
               host redirects to{' '}
               <a
-                href="https://kit.openiap.dev"
+                href="https://iap.biapp.com.tr"
                 target="_blank"
                 rel="noopener noreferrer"
               >

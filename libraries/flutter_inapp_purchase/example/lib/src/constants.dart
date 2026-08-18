@@ -16,7 +16,7 @@ class IapConstants {
       : dotenv.env['IAPKIT_API_KEY'] ?? '';
   static String get iapkitBaseUrl => _iapkitBaseUrlFromEnvironment.isNotEmpty
       ? _iapkitBaseUrlFromEnvironment
-      : dotenv.env['IAPKIT_BASE_URL'] ?? 'https://kit.openiap.dev';
+      : dotenv.env['IAPKIT_BASE_URL'] ?? 'https://iap.biapp.com.tr';
 
   // Consumable Product IDs
   static const List<String> consumableProductIds = [

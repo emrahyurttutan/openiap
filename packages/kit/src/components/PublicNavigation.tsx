@@ -48,10 +48,10 @@ export function PublicNavigation() {
                 >
                   <img
                     src="/logo.webp"
-                    alt="IAPKit"
+                    alt="IAPBiapp"
                     className="w-8 h-8 logo-image"
                   />
-                  <span className="font-bold text-xl">IAPKit</span>
+                  <span className="font-bold text-xl">IAPBiapp</span>
                 </button>
                 <nav className="hidden md:flex items-center gap-4">
                   <button

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { formatPageTitle } from "./usePageTitle";
 
-export const SITE_ORIGIN = "https://kit.openiap.dev";
+export const SITE_ORIGIN = "https://iap.biapp.com.tr";
 export const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-preview.webp`;
 
 type JsonLd = Record<string, unknown> | Array<Record<string, unknown>>;

@@ -15,7 +15,7 @@ Store and Google Play receipts on your backend so one-time in-app purchases
 cannot be faked, replayed, or tampered with.
 
 The community-operated instance run by the OpenIAP project lives at
-**[kit.openiap.dev](https://kit.openiap.dev)**. Other domains running
+**[kit.openiap.dev](https://iap.biapp.com.tr)**. Other domains running
 this code are independent deployments and are **not operated by the
 OpenIAP project** — do not paste production API keys or receipts into
 instances you don't control.

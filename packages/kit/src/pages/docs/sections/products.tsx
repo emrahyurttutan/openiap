@@ -219,16 +219,16 @@ export default function ProductsPage() {
         language="bash"
       >
         {`curl -X POST \\
-  "https://kit.openiap.dev/v1/products/sync/ios?direction=pull&dryRun=false" \\
+  "https://iap.biapp.com.tr/v1/products/sync/ios?direction=pull&dryRun=false" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>"
 
 # Poll the returned jobId until status is succeeded.
-curl "https://kit.openiap.dev/v1/products/sync/jobs/<jobId>" \\
+curl "https://iap.biapp.com.tr/v1/products/sync/jobs/<jobId>" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>"`}
       </CodeBlock>
       <CodeBlock title="Set a payload from CI" language="bash">
         {`curl -X PUT \\
-  "https://kit.openiap.dev/v1/products/client-payload/premium_monthly?platform=IOS" \\
+  "https://iap.biapp.com.tr/v1/products/client-payload/premium_monthly?platform=IOS" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -239,7 +239,7 @@ curl "https://kit.openiap.dev/v1/products/sync/jobs/<jobId>" \\
       </CodeBlock>
       <CodeBlock title="Remove a payload from CI" language="bash">
         {`curl -X DELETE \\
-  "https://kit.openiap.dev/v1/products/client-payload/premium_monthly?platform=IOS&expectedVersion=4" \\
+  "https://iap.biapp.com.tr/v1/products/client-payload/premium_monthly?platform=IOS&expectedVersion=4" \\
   -H "Authorization: Bearer openiap-kit_sk_<your-secret-key>"`}
       </CodeBlock>
       <p>
@@ -276,7 +276,7 @@ curl "https://kit.openiap.dev/v1/products/sync/jobs/<jobId>" \\
         </p>
       </Callout>
       <CodeBlock title="List iOS products with payloads" language="bash">
-        {`curl "https://kit.openiap.dev/v1/products/openiap-kit_pk_<your-publishable-key>?platform=IOS&includeClientPayload=true&limit=25"`}
+        {`curl "https://iap.biapp.com.tr/v1/products/openiap-kit_pk_<your-publishable-key>?platform=IOS&includeClientPayload=true&limit=25"`}
       </CodeBlock>
       <CodeBlock title="Catalog response" language="json">
         {`{
@@ -346,7 +346,7 @@ const refreshed = await api.clientPayload(
         To fetch one known product without downloading the full catalog, use:
       </p>
       <CodeBlock title="Fetch one product payload" language="bash">
-        {`curl "https://kit.openiap.dev/v1/products/openiap-kit_pk_<your-publishable-key>/premium_monthly/client-payload?platform=IOS"`}
+        {`curl "https://iap.biapp.com.tr/v1/products/openiap-kit_pk_<your-publishable-key>/premium_monthly/client-payload?platform=IOS"`}
       </CodeBlock>
       <p>
         The direct endpoint returns <code>{`{ clientPayload: { ... } }`}</code>{" "}

@@ -267,7 +267,7 @@ public sealed class KitApiError : Exception
 
 public sealed class KitApiClient
 {
-    private const string DefaultBaseUrl = "https://kit.openiap.dev";
+    private const string DefaultBaseUrl = "https://iap.biapp.com.tr";
     private readonly HttpClient _http;
 
     internal KitApiClient(KitApiOptions options)
