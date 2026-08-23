@@ -287,7 +287,7 @@ export default function OrganizationSettings() {
                   rel="noopener noreferrer"
                   className="link"
                 >
-                  kit.openiap.dev/{currentOrg.slug}
+                  iap.biapp.com.tr/{currentOrg.slug}
                 </a>
               </p>
             </div>

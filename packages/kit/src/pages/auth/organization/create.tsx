@@ -131,7 +131,7 @@ export default function CreateOrganization() {
             </label>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                kit.openiap.dev/
+                iap.biapp.com.tr/
               </span>
               <input
                 id="slug"
