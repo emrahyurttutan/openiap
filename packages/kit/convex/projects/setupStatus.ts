@@ -78,25 +78,33 @@ export const getSetupStatus = query({
       };
     }
 
-    // Read the whole org's credential files, not just this project's rows:
-    // a project with none of its own inherits the org-level ones, and
-    // reporting those as missing sends the operator hunting for nothing.
-    const organizationFiles = await ctx.db
-      .query("files")
-      .withIndex("by_organization", (q) =>
-        q.eq("organizationId", project.organizationId),
-      )
-      .collect();
-
-    const credentialFile = (purpose: string) =>
+    // A project with no credential file of its own inherits the org-level
+    // one, so the lookup spans the org. One indexed read per purpose keeps
+    // that bounded — a plain `by_organization` collect would also pull every
+    // project's review screenshot into this hot, public query.
+    const credentialFile = async (
+      purpose:
+        | "apple_p8_key"
+        | "apple_p8_asc_api_key"
+        | "android_service_account",
+    ) =>
       pickCredentialFile(
-        organizationFiles.filter((file) => file.purpose === purpose),
+        await ctx.db
+          .query("files")
+          .withIndex("by_org_and_purpose", (q) =>
+            q
+              .eq("organizationId", project.organizationId)
+              .eq("purpose", purpose),
+          )
+          .collect(),
         project._id,
       );
 
-    const appleP8File = credentialFile("apple_p8_key");
-    const appleAscFile = credentialFile("apple_p8_asc_api_key");
-    const googleServiceAccountFile = credentialFile("android_service_account");
+    const appleP8File = await credentialFile("apple_p8_key");
+    const appleAscFile = await credentialFile("apple_p8_asc_api_key");
+    const googleServiceAccountFile = await credentialFile(
+      "android_service_account",
+    );
 
     const organization = await ctx.db.get(project.organizationId);
     const resolvedApple = resolveAppleCredentialIds(project, organization);

@@ -163,6 +163,33 @@ describe("StoreCredentialsCard", () => {
     expect(screen.queryByText("ProjectKey.p8")).toBeNull();
   });
 
+  it("resyncs when the stored defaults change under it", () => {
+    const { rerender } = render(
+      <StoreCredentialsCard
+        organizationId={"organizations_a" as never}
+        organization={{ ...ORGANIZATION, defaultIosAppStoreKeyId: null }}
+        canEdit
+      />,
+    );
+    expect(
+      screen.getByLabelText<HTMLInputElement>("In-App Purchase Key ID").value,
+    ).toBe("");
+
+    rerender(
+      <StoreCredentialsCard
+        organizationId={"organizations_a" as never}
+        organization={{
+          ...ORGANIZATION,
+          defaultIosAppStoreKeyId: "SAVED12345",
+        }}
+        canEdit
+      />,
+    );
+    expect(
+      screen.getByLabelText<HTMLInputElement>("In-App Purchase Key ID").value,
+    ).toBe("SAVED12345");
+  });
+
   it("rejects an upload whose extension cannot match the slot", async () => {
     renderCard();
     const input = screen.getByLabelText("Upload In-App Purchase key (.p8)");

@@ -15,6 +15,26 @@ import { pickCredentialFile } from "../projects/storeCredentials";
 
 export const UPLOAD_RESERVATION_PRUNE_BATCH_SIZE = 200;
 
+// Restrict the lookup to one level when the caller already resolved the key
+// id there; mixing levels would sign with a key the `kid` does not name.
+function selectCredentialFile<
+  T extends { projectId?: Id<"projects"> | undefined },
+>(
+  files: T[],
+  projectId: Id<"projects"> | undefined,
+  source: "project" | "organization" | undefined,
+): T | undefined {
+  if (source === "organization") {
+    return files.find((file) => file.projectId === undefined);
+  }
+  if (source === "project") {
+    return projectId
+      ? files.find((file) => file.projectId === projectId)
+      : undefined;
+  }
+  return pickCredentialFile(files, projectId);
+}
+
 function describeErrorForLog(error: unknown): string {
   return error instanceof Error ? error.name : typeof error;
 }
@@ -351,6 +371,11 @@ export const getAppleP8Key = internalAction({
   args: {
     organizationId: v.id("organizations"),
     projectId: v.optional(v.id("projects")),
+    // Apple signs with `kid`, so the key id and this file must come from the
+    // same level. Callers that resolved an id pass the level it came from.
+    source: v.optional(
+      v.union(v.literal("project"), v.literal("organization")),
+    ),
   },
   handler: async (ctx, args): Promise<any> => {
     // Find the most recent Apple P8 key file
@@ -362,10 +387,7 @@ export const getAppleP8Key = internalAction({
       },
     );
 
-    // The project's own key, then the org default. Never another
-    // project's: the old `files[0]` fallback signed one project's
-    // requests with a different project's credential.
-    const targetFile = pickCredentialFile(files, args.projectId);
+    const targetFile = selectCredentialFile(files, args.projectId, args.source);
 
     if (!targetFile) {
       throw new ConvexError("No Apple P8 key found for this organization");
@@ -393,6 +415,9 @@ export const getAppleAscApiKey = internalAction({
   args: {
     organizationId: v.id("organizations"),
     projectId: v.optional(v.id("projects")),
+    source: v.optional(
+      v.union(v.literal("project"), v.literal("organization")),
+    ),
   },
   handler: async (
     ctx,
@@ -410,7 +435,7 @@ export const getAppleAscApiKey = internalAction({
       },
     );
 
-    const targetFile = pickCredentialFile(files, args.projectId);
+    const targetFile = selectCredentialFile(files, args.projectId, args.source);
 
     if (!targetFile) {
       throw new ConvexError(

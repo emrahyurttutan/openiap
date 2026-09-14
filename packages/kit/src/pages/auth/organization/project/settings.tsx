@@ -431,6 +431,21 @@ export default function ProjectSettings() {
       file.projectId === project?._id,
   );
 
+  // Organization-level rows (no projectId) this project falls back to. Without
+  // them a promoted file would read as "not uploaded" on this page.
+  const inheritedIosFile = files?.find(
+    (file) => file.purpose === "apple_p8_key" && file.projectId === undefined,
+  );
+  const inheritedIosAscFile = files?.find(
+    (file) =>
+      file.purpose === "apple_p8_asc_api_key" && file.projectId === undefined,
+  );
+  const inheritedAndroidFile = files?.find(
+    (file) =>
+      file.purpose === "android_service_account" &&
+      file.projectId === undefined,
+  );
+
   const hasIosFile = !!iosFile;
   const hasIosAscFile = !!iosAscFile;
   const hasIosReviewScreenshot = !!iosReviewScreenshot;
@@ -440,7 +455,7 @@ export default function ProjectSettings() {
   const iosAppleIdLocked = Boolean(originalIosAppleIdString);
   const iosIssuerLocked = Boolean(originalIosIssuerId);
   const iosKeyLocked = Boolean(originalIosKeyId);
-  const isIosP8Provided = hasIosFile || iosFileUploaded;
+  const isIosP8Provided = hasIosFile || iosFileUploaded || !!inheritedIosFile;
 
   const derivedAppleSupport =
     Boolean(project?.iosBundleId?.trim()) ||
@@ -449,11 +464,13 @@ export default function ProjectSettings() {
     Boolean(project?.iosAppStoreKeyId?.trim()) ||
     isIosP8Provided ||
     hasIosAscFile ||
+    !!inheritedIosAscFile ||
     hasIosReviewScreenshot;
   const derivedAndroidSupport =
     Boolean(project?.androidPackageName?.trim()) ||
     hasAndroidFile ||
-    androidFileUploaded;
+    androidFileUploaded ||
+    !!inheritedAndroidFile;
 
   useEffect(() => {
     setApplePlatformsSelected((current) =>
@@ -506,12 +523,25 @@ export default function ProjectSettings() {
     iosAppleIdLocked ||
     trimmedIosAppleId === "" ||
     /^\d+$/.test(trimmedIosAppleId);
+  // A blank field means "inherit the organization default", so it only blocks
+  // the save when no default exists to inherit.
+  const inheritedIosIssuerId =
+    organizationDefaults?.defaultIosAppStoreIssuerId?.trim() ?? "";
+  const inheritedIosKeyId =
+    organizationDefaults?.defaultIosAppStoreKeyId?.trim() ?? "";
   const isIosIssuerIdValid =
-    !showAppleSection || appStoreIssuerPattern.test(trimmedIosIssuerId);
+    !showAppleSection ||
+    (trimmedIosIssuerId.length === 0
+      ? inheritedIosIssuerId.length > 0
+      : appStoreIssuerPattern.test(trimmedIosIssuerId));
   const isIosKeyIdValid =
-    !showAppleSection || appStoreKeyPattern.test(trimmedIosKeyId);
+    !showAppleSection ||
+    (trimmedIosKeyId.length === 0
+      ? inheritedIosKeyId.length > 0
+      : appStoreKeyPattern.test(trimmedIosKeyId));
   const iosCredentialsProvided =
-    trimmedIosIssuerId.length > 0 && trimmedIosKeyId.length > 0;
+    (trimmedIosIssuerId.length > 0 || inheritedIosIssuerId.length > 0) &&
+    (trimmedIosKeyId.length > 0 || inheritedIosKeyId.length > 0);
   const isIosCredentialPairValid = !showAppleSection || iosCredentialsProvided;
   // ASC API Key ID — optional (only required for push-sync). The
   // matching Issuer ID is shared with the Server API one above.
@@ -1407,6 +1437,12 @@ export default function ProjectSettings() {
                       </div>
                     ) : (
                       <>
+                        {inheritedIosFile && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {`Inherited from organization defaults: ${inheritedIosFile.fileName}`}
+                          </p>
+                        )}
+
                         <div className="relative">
                           <input
                             type="file"
@@ -1683,6 +1719,12 @@ export default function ProjectSettings() {
                         </div>
                       ) : (
                         <>
+                          {inheritedIosAscFile && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {`Inherited from organization defaults: ${inheritedIosAscFile.fileName}`}
+                            </p>
+                          )}
+
                           <div className="relative">
                             <input
                               type="file"
@@ -1997,6 +2039,12 @@ export default function ProjectSettings() {
                       </div>
                     ) : (
                       <>
+                        {inheritedAndroidFile && (
+                          <p className="text-sm text-muted-foreground mb-2">
+                            {`Inherited from organization defaults: ${inheritedAndroidFile.fileName}`}
+                          </p>
+                        )}
+
                         <div className="relative">
                           <input
                             type="file"

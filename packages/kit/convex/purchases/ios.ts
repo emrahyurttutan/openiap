@@ -326,6 +326,9 @@ export async function getAppStoreServerCredentials(
       {
         organizationId: project.organizationId,
         projectId: project._id,
+        // Pin the .p8 to the level the key id came from: Apple rejects a JWT
+        // whose `kid` names a key other than the one that signed it.
+        source: resolved.sources.keyId,
       },
     );
     privateKey = keyResponse.keyContent;

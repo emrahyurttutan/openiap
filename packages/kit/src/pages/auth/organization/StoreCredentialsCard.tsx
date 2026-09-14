@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { toast } from "sonner";
 
@@ -95,6 +95,20 @@ export function StoreCredentialsCard({
     keyId: organization.defaultIosAppStoreKeyId ?? "",
     ascKeyId: organization.defaultIosAscKeyId ?? "",
   });
+  // Resync when the stored defaults change, so a card left open in a second
+  // tab cannot write its stale (blank) values back over someone else's save.
+  useEffect(() => {
+    setValues({
+      issuerId: organization.defaultIosAppStoreIssuerId ?? "",
+      keyId: organization.defaultIosAppStoreKeyId ?? "",
+      ascKeyId: organization.defaultIosAscKeyId ?? "",
+    });
+  }, [
+    organization.defaultIosAppStoreIssuerId,
+    organization.defaultIosAppStoreKeyId,
+    organization.defaultIosAscKeyId,
+  ]);
+
   const [isSaving, setIsSaving] = useState(false);
   const [uploading, setUploading] = useState<CredentialPurpose | null>(null);
 

@@ -217,20 +217,50 @@ async function resolveAscCredentials(
   // signed with the ASC private key, and Apple rejected every
   // request with a 401 across all production deployments
   // (LukasB-DEV's report on PR #127).
-  // Each id resolves from the project when set and the organization
-  // default otherwise; the pair rule above then applies unchanged.
+  // Each id resolves from the project when set and the organization default
+  // otherwise. A key id and the .p8 that signs for it must come from the SAME
+  // level — Apple names the signing key in `kid` — so each slot below loads
+  // its file pinned to its own id's level, and the legacy fallback swaps the
+  // whole pair rather than pairing an ASC id with a Server API key.
   const organizationDefaults = await ctx.runQuery(
     internal.projects.storeCredentials.getOrganizationStoreDefaults,
     { organizationId: project.organizationId },
   );
   const resolved = resolveAppleCredentialIds(project, organizationDefaults);
-  const useAsc = !!resolved.ascKeyId;
+
+  // The action throws a ConvexError starting with this text when no file is
+  // uploaded. Only that case falls through to the legacy pair; storage,
+  // permission and transient errors must surface instead of silently signing
+  // with a different key.
+  const loadAscKey = async (): Promise<string | undefined> => {
+    if (!resolved.ascKeyId) return undefined;
+    try {
+      const ascKey = await ctx.runAction(
+        internal.files.internal.getAppleAscApiKey,
+        {
+          organizationId: project.organizationId,
+          projectId: project._id,
+          source: resolved.sources.ascKeyId,
+        },
+      );
+      return ascKey?.keyContent;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!message.includes("No App Store Connect API key (.p8) uploaded")) {
+        throw error;
+      }
+      return undefined;
+    }
+  };
+
+  const ascKeyContent = await loadAscKey();
+  const useAsc = !!resolved.ascKeyId && !!ascKeyContent;
   const issuerId = useAsc
     ? (resolved.ascIssuerId ?? resolved.issuerId)
     : resolved.issuerId;
   const keyId = useAsc ? resolved.ascKeyId : resolved.keyId;
   if (!keyId) {
-    const missing = [useAsc ? "iosAscKeyId" : "iosAppStoreKeyId"];
+    const missing = [resolved.ascKeyId ? "iosAscKeyId" : "iosAppStoreKeyId"];
     throw new Error(
       options.detailedErrors
         ? `App Store Connect API ${missing.join(", ")} not configured. ` +
@@ -242,41 +272,17 @@ async function resolveAscCredentials(
         : `App Store Connect API ${missing.join(", ")} not configured`,
     );
   }
-  // Prefer the dedicated ASC .p8 file; fall back to the Server API
-  // .p8 when the user has only uploaded one. The wrong-kind hint
-  // from `call()` will tell them to upload a Team Key if Apple
-  // rejects whichever they have.
-  let keyContent: string | undefined;
-  try {
-    const ascKey = await ctx.runAction(
-      internal.files.internal.getAppleAscApiKey,
-      {
-        organizationId: project.organizationId,
-        projectId: project._id,
-      },
-    );
-    keyContent = ascKey?.keyContent;
-  } catch (error) {
-    // Only swallow the documented "no ASC key uploaded" case so we
-    // can fall through to the legacy slot. Storage / permission /
-    // transient errors must surface — masking them as "use legacy
-    // key" hides the real failure and ends up signing requests with
-    // the wrong key, producing confusing 401s downstream.
-    //
-    // The action throws a ConvexError whose message starts with
-    // "No App Store Connect API key (.p8) uploaded" when the file is
-    // missing. Anything else rethrows.
-    const message = error instanceof Error ? error.message : String(error);
-    if (!message.includes("No App Store Connect API key (.p8) uploaded")) {
-      throw error;
-    }
-  }
+  let keyContent: string | undefined = useAsc ? ascKeyContent : undefined;
   if (!keyContent) {
+    // Legacy slot: the Server API key id AND its .p8, both from that id's
+    // level. `call()` still surfaces the wrong-kind 401 hint if Apple
+    // refuses a Server API key on an ASC endpoint.
     const legacyKey = await ctx.runAction(
       internal.files.internal.getAppleP8Key,
       {
         organizationId: project.organizationId,
         projectId: project._id,
+        source: resolved.sources.keyId,
       },
     );
     keyContent = legacyKey?.keyContent;

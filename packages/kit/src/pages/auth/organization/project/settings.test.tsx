@@ -604,6 +604,55 @@ describe("ProjectSettings", () => {
     ).toBeTruthy();
   });
 
+  function renderWithBlankAppleCredentials(
+    organizationDefaults: Record<string, unknown>,
+  ) {
+    mocks.project = {
+      ...mocks.project,
+      iosAppStoreIssuerId: "",
+      iosAppStoreKeyId: "",
+    };
+    mocks.organizationDefaults = organizationDefaults;
+    render(<ProjectSettings />);
+    // The save button also needs a real edit before it enables.
+    fireEvent.change(screen.getByPlaceholderText("com.example.ios"), {
+      target: { value: "com.example.renamed" },
+    });
+    return screen.getByRole("button", { name: /Save identifiers/i });
+  }
+
+  it("lets a project save while inheriting blank apple credentials", () => {
+    const save = renderWithBlankAppleCredentials({
+      defaultIosAppStoreIssuerId: "11111111-1111-1111-1111-111111111111",
+      defaultIosAppStoreKeyId: "ORGKEY1234",
+    });
+    expect(save.hasAttribute("disabled")).toBe(false);
+  });
+
+  it("still blocks the save when nothing can be inherited", () => {
+    const save = renderWithBlankAppleCredentials({});
+    expect(save.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("keeps an inherited service account visible after promotion", () => {
+    mocks.project = { ...mocks.project, androidPackageName: "" };
+    mocks.files = [
+      {
+        _id: "files_org_sa",
+        fileName: "service-account.json",
+        fileSize: 2048,
+        purpose: "android_service_account",
+        projectId: undefined,
+      },
+    ];
+    render(<ProjectSettings />);
+    expect(
+      screen.getByText(
+        "Inherited from organization defaults: service-account.json",
+      ),
+    ).toBeTruthy();
+  });
+
   it("offers to promote a project credential file to the organization", async () => {
     mocks.files = [
       {
