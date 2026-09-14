@@ -10,6 +10,7 @@ import { ConvexError, v } from "convex/values";
 
 import { action } from "../_generated/server";
 import { internal } from "../_generated/api";
+import { resolveAppleCredentialIds } from "../projects/storeCredentials";
 import type { Id } from "../_generated/dataModel";
 import { loadAppleRootCertificates } from "../certificates/apple_root_certificates";
 import { getProjectByApiKey } from "../purchases/shared";
@@ -62,11 +63,20 @@ export const ingestAppleAsnIOS = action({
     // here cuts the round-trip; the `mapWebhookError` translator
     // recognizes "IOS_NOT_CONFIGURED" and returns 412 with the same
     // structured error body the prior pre-check produced.
+    const organizationDefaults = await ctx.runQuery(
+      internal.projects.storeCredentials.getOrganizationStoreDefaults,
+      { organizationId: project.organizationId },
+    );
+    const resolvedApple = resolveAppleCredentialIds(
+      project,
+      organizationDefaults,
+    );
     const iosMissing: string[] = [];
     if (!project.iosBundleId) iosMissing.push("iosBundleId");
     if (!project.iosAppAppleId) iosMissing.push("iosAppAppleId");
-    if (!project.iosAppStoreIssuerId) iosMissing.push("iosAppStoreIssuerId");
-    if (!project.iosAppStoreKeyId) iosMissing.push("iosAppStoreKeyId");
+    // Names stay the project columns an operator fills in; SDKs match them.
+    if (!resolvedApple.issuerId) iosMissing.push("iosAppStoreIssuerId");
+    if (!resolvedApple.keyId) iosMissing.push("iosAppStoreKeyId");
     if (iosMissing.length > 0) {
       throw new ConvexError({
         code: "IOS_NOT_CONFIGURED",

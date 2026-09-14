@@ -3,6 +3,10 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { SPONSOR_CTA_THRESHOLD } from "../plans";
 import { createError, ErrorCode } from "../utils/errors";
+import {
+  normalizeOptionalAppStoreIssuerId,
+  normalizeOptionalAppStoreKeyId,
+} from "../projects/storeCredentialValidation";
 
 // Helper to generate URL-friendly slug
 function generateSlug(name: string): string {
@@ -159,6 +163,69 @@ export const updateOrganization = mutation({
           ? args.taxIdType.trim() || null
           : null;
       updates.taxIdType = normalized;
+    }
+
+    await ctx.db.patch(args.organizationId, updates);
+  },
+});
+
+// Apple issues one Issuer ID and key set per developer account, so these
+// live on the organization and a project inherits each column it leaves
+// blank. Null — or a blank string from a cleared input — removes one.
+export const updateStoreDefaults = mutation({
+  args: {
+    organizationId: v.id("organizations"),
+    defaultIosAppStoreIssuerId: v.optional(v.union(v.string(), v.null())),
+    defaultIosAppStoreKeyId: v.optional(v.union(v.string(), v.null())),
+    defaultIosAscIssuerId: v.optional(v.union(v.string(), v.null())),
+    defaultIosAscKeyId: v.optional(v.union(v.string(), v.null())),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw createError(ErrorCode.NOT_AUTHENTICATED);
+    }
+
+    const membership = await ctx.db
+      .query("organizationMembers")
+      .withIndex("by_org_and_user", (q) =>
+        q.eq("organizationId", args.organizationId).eq("userId", userId),
+      )
+      .first();
+
+    if (
+      !membership ||
+      (membership.role !== "owner" && membership.role !== "admin")
+    ) {
+      throw createError(ErrorCode.INSUFFICIENT_PERMISSIONS);
+    }
+
+    const organization = await ctx.db.get(args.organizationId);
+    if (!organization || organization.pendingDeletion) {
+      throw createError(ErrorCode.ORGANIZATION_NOT_FOUND);
+    }
+
+    const updates: Record<string, unknown> = { updatedAt: Date.now() };
+
+    if (args.defaultIosAppStoreIssuerId !== undefined) {
+      updates.defaultIosAppStoreIssuerId = normalizeOptionalAppStoreIssuerId(
+        args.defaultIosAppStoreIssuerId,
+      );
+    }
+    if (args.defaultIosAppStoreKeyId !== undefined) {
+      updates.defaultIosAppStoreKeyId = normalizeOptionalAppStoreKeyId(
+        args.defaultIosAppStoreKeyId,
+      );
+    }
+    if (args.defaultIosAscIssuerId !== undefined) {
+      updates.defaultIosAscIssuerId = normalizeOptionalAppStoreIssuerId(
+        args.defaultIosAscIssuerId,
+      );
+    }
+    if (args.defaultIosAscKeyId !== undefined) {
+      updates.defaultIosAscKeyId = normalizeOptionalAppStoreKeyId(
+        args.defaultIosAscKeyId,
+      );
     }
 
     await ctx.db.patch(args.organizationId, updates);

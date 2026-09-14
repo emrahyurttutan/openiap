@@ -15,7 +15,7 @@
  */
 const MACHINE_ID_PATTERN = /^[A-Za-z0-9]{1,32}$/;
 
-const SESSION_MACHINE_SEPARATOR = ".";
+const SESSION_MACHINE_SEPARATOR = '.';
 
 /** Reads the Fly machine identity, or undefined when not running on Fly. */
 export function currentMachineId(
@@ -26,17 +26,14 @@ export function currentMachineId(
 }
 
 /** Builds a session id that carries the creating machine's identity. */
-export function buildSessionId(
-  machineId: string | undefined,
-  uuid: string,
-): string {
+export function buildSessionId(machineId: string | undefined, uuid: string): string {
   return machineId ? `${machineId}${SESSION_MACHINE_SEPARATOR}${uuid}` : uuid;
 }
 
 /** Routing decision for a session id this process doesn't recognize. */
 export type UnknownSessionRouting =
-  | { action: "replay"; targetMachineId: string }
-  | { action: "not-found" };
+  | { action: 'replay'; targetMachineId: string }
+  | { action: 'not-found' };
 
 /**
  * Decides what to do with a session id that isn't in the local
@@ -56,18 +53,18 @@ export function routeUnknownSession(options: {
   alreadyReplayed: boolean;
 }): UnknownSessionRouting {
   if (!options.machineId || options.alreadyReplayed) {
-    return { action: "not-found" };
+    return { action: 'not-found' };
   }
 
   const separatorIndex = options.sessionId.indexOf(SESSION_MACHINE_SEPARATOR);
-  if (separatorIndex <= 0) return { action: "not-found" };
+  if (separatorIndex <= 0) return { action: 'not-found' };
 
   const prefix = options.sessionId.slice(0, separatorIndex);
   if (!MACHINE_ID_PATTERN.test(prefix) || prefix === options.machineId) {
     // Malformed prefix, or the session was minted by this very machine
     // (map lost to a restart/deploy) — replaying to ourselves would loop.
-    return { action: "not-found" };
+    return { action: 'not-found' };
   }
 
-  return { action: "replay", targetMachineId: prefix };
+  return { action: 'replay', targetMachineId: prefix };
 }

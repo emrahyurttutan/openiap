@@ -23,6 +23,21 @@ export const FILE_UPLOAD_RESERVATION_CLEANUP_TTL_MS = 75 * 60 * 1000;
 // Convex OCC.
 export const MAX_ACTIVE_FILE_UPLOAD_RESERVATIONS_PER_TARGET = 8;
 
+// Store signing credentials. A member must not replace one: at project level
+// it redirects receipt verification, and an org-level row is inherited by
+// every project that has no file of its own.
+const CREDENTIAL_PURPOSES = [
+  "apple_p8_key",
+  "apple_p8_asc_api_key",
+  "android_service_account",
+] as const;
+
+type CredentialPurpose = (typeof CREDENTIAL_PURPOSES)[number];
+
+function isCredentialPurpose(purpose: string): purpose is CredentialPurpose {
+  return (CREDENTIAL_PURPOSES as readonly string[]).includes(purpose);
+}
+
 async function deleteUnclaimedUpload(
   ctx: MutationCtx,
   storageId: Id<"_storage">,
@@ -152,7 +167,8 @@ export const saveFile = mutation({
     }
 
     if (
-      args.purpose === "apple_iap_review_screenshot" &&
+      (args.purpose === "apple_iap_review_screenshot" ||
+        isCredentialPurpose(args.purpose)) &&
       membership.role === "member"
     ) {
       await deleteUnclaimedUpload(ctx, args.storageId);
@@ -247,6 +263,23 @@ export const saveFile = mutation({
             .collect()
         : [];
 
+    // An org holds at most one credential row per purpose, the same
+    // single-slot rule the screenshot uses. Reading the indexed range before
+    // the insert makes concurrent uploads conflict under Convex OCC.
+    const organizationDefaultsToReplace =
+      !args.projectId && isCredentialPurpose(args.purpose)
+        ? (
+            await ctx.db
+              .query("files")
+              .withIndex("by_org_and_purpose", (q) =>
+                q
+                  .eq("organizationId", args.organizationId)
+                  .eq("purpose", args.purpose),
+              )
+              .collect()
+          ).filter((file) => file.projectId === undefined)
+        : [];
+
     const fileId = await ctx.db.insert("files", {
       organizationId: args.organizationId,
       projectId: args.projectId,
@@ -272,6 +305,10 @@ export const saveFile = mutation({
 
     for (const priorScreenshot of screenshotsToReplace) {
       await deleteFileAndStorageIfUnreferenced(ctx, priorScreenshot);
+    }
+
+    for (const priorDefault of organizationDefaultsToReplace) {
+      await deleteFileAndStorageIfUnreferenced(ctx, priorDefault);
     }
 
     // Consume the capability in the same transaction as the file insert so a
@@ -569,5 +606,77 @@ export const generateUploadUrl = mutation({
       uploadReservationId,
       expiresAt: now + FILE_UPLOAD_RESERVATION_TTL_MS,
     };
+  },
+});
+
+// Move a project's credential up to the organization so every other project
+// inherits it. The migration path off the removed cross-project fallback.
+export const promoteFileToOrganizationDefault = mutation({
+  args: {
+    fileId: v.id("files"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new ConvexError("Not authenticated");
+    }
+
+    const file = await ctx.db.get(args.fileId);
+    if (!file) {
+      throw new ConvexError("File not found");
+    }
+
+    if (!isCredentialPurpose(file.purpose)) {
+      throw new ConvexError(
+        "Only store credential files can become an organization default",
+      );
+    }
+
+    const organization = await getOrganizationById(ctx, file.organizationId);
+    if (!organization) {
+      throw new ConvexError("File not found");
+    }
+
+    const membership = await ctx.db
+      .query("organizationMembers")
+      .withIndex("by_org_and_user", (q) =>
+        q.eq("organizationId", file.organizationId).eq("userId", userId),
+      )
+      .first();
+
+    if (!membership || membership.role === "member") {
+      throw new ConvexError("Insufficient permissions");
+    }
+
+    if (file.projectId === undefined) {
+      return { success: true as const };
+    }
+
+    // Read the indexed range before patching so a concurrent promote or
+    // upload conflicts under OCC instead of leaving two rows in the slot.
+    const existingDefaults = (
+      await ctx.db
+        .query("files")
+        .withIndex("by_org_and_purpose", (q) =>
+          q
+            .eq("organizationId", file.organizationId)
+            .eq("purpose", file.purpose),
+        )
+        .collect()
+    ).filter(
+      (candidate) =>
+        candidate.projectId === undefined && candidate._id !== file._id,
+    );
+
+    await ctx.db.patch(file._id, {
+      projectId: undefined,
+      updatedAt: Date.now(),
+    });
+
+    for (const priorDefault of existingDefaults) {
+      await deleteFileAndStorageIfUnreferenced(ctx, priorDefault);
+    }
+
+    return { success: true as const };
   },
 });

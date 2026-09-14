@@ -114,6 +114,15 @@ const schema = defineSchema({
     defaultPaymentMethodExpMonth: v.optional(v.union(v.number(), v.null())),
     defaultPaymentMethodExpYear: v.optional(v.union(v.number(), v.null())),
 
+    // Apple issues these per developer account, so a project inherits each
+    // one whose own column is blank (convex/projects/storeCredentials.ts).
+    // Widened to `null` because Convex treats `undefined` in a patch as
+    // "leave unchanged", so clearing needs an explicit null.
+    defaultIosAppStoreIssuerId: v.optional(v.union(v.string(), v.null())),
+    defaultIosAppStoreKeyId: v.optional(v.union(v.string(), v.null())),
+    defaultIosAscIssuerId: v.optional(v.union(v.string(), v.null())),
+    defaultIosAscKeyId: v.optional(v.union(v.string(), v.null())),
+
     // Deletion orchestration: when a user who is the sole member of this
     // org initiates `deleteAccount`, the outer membership-drain mutation
     // flags the org here; the paginated drain action then walks

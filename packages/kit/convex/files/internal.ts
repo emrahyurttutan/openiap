@@ -11,8 +11,29 @@ import {
   deleteFileAndStorageIfUnreferenced,
   deleteStorageIfUnreferenced,
 } from "./storage";
+import { pickCredentialFile } from "../projects/storeCredentials";
 
 export const UPLOAD_RESERVATION_PRUNE_BATCH_SIZE = 200;
+
+// Restrict the lookup to one level when the caller already resolved the key
+// id there; mixing levels would sign with a key the `kid` does not name.
+function selectCredentialFile<
+  T extends { projectId?: Id<"projects"> | undefined },
+>(
+  files: T[],
+  projectId: Id<"projects"> | undefined,
+  source: "project" | "organization" | undefined,
+): T | undefined {
+  if (source === "organization") {
+    return files.find((file) => file.projectId === undefined);
+  }
+  if (source === "project") {
+    return projectId
+      ? files.find((file) => file.projectId === projectId)
+      : undefined;
+  }
+  return pickCredentialFile(files, projectId);
+}
 
 function describeErrorForLog(error: unknown): string {
   return error instanceof Error ? error.name : typeof error;
@@ -314,19 +335,34 @@ export const getAppleReviewScreenshotByProjectInternal = internalQuery({
 });
 
 // Internal query to get Google Play service account file by project.
-// Uses the `by_project` index on `files` and filters by purpose through
-// the query builder so we only read rows that could match — no full
-// org scan into memory.
+// The project's own row is a narrow `by_project` index read. Only when it
+// has none do we scan the org's rows for that purpose — bounded by project
+// count — to find the org-level default. Another project's row never wins.
 export const getGooglePlayFileByProjectInternal = internalQuery({
   args: {
     projectId: v.id("projects"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const projectFile = await ctx.db
       .query("files")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .filter((q) => q.eq(q.field("purpose"), "android_service_account"))
       .first();
+    if (projectFile) return projectFile;
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) return null;
+
+    const organizationFiles = await ctx.db
+      .query("files")
+      .withIndex("by_org_and_purpose", (q) =>
+        q
+          .eq("organizationId", project.organizationId)
+          .eq("purpose", "android_service_account"),
+      )
+      .collect();
+
+    return pickCredentialFile(organizationFiles, undefined) ?? null;
   },
 });
 
@@ -335,6 +371,11 @@ export const getAppleP8Key = internalAction({
   args: {
     organizationId: v.id("organizations"),
     projectId: v.optional(v.id("projects")),
+    // Apple signs with `kid`, so the key id and this file must come from the
+    // same level. Callers that resolved an id pass the level it came from.
+    source: v.optional(
+      v.union(v.literal("project"), v.literal("organization")),
+    ),
   },
   handler: async (ctx, args): Promise<any> => {
     // Find the most recent Apple P8 key file
@@ -346,14 +387,7 @@ export const getAppleP8Key = internalAction({
       },
     );
 
-    // Filter by project if specified
-    let targetFile = files[0];
-    if (args.projectId) {
-      const projectFiles = files.filter(
-        (f: any) => f.projectId === args.projectId,
-      );
-      targetFile = projectFiles[0] || files[0];
-    }
+    const targetFile = selectCredentialFile(files, args.projectId, args.source);
 
     if (!targetFile) {
       throw new ConvexError("No Apple P8 key found for this organization");
@@ -381,6 +415,9 @@ export const getAppleAscApiKey = internalAction({
   args: {
     organizationId: v.id("organizations"),
     projectId: v.optional(v.id("projects")),
+    source: v.optional(
+      v.union(v.literal("project"), v.literal("organization")),
+    ),
   },
   handler: async (
     ctx,
@@ -398,13 +435,7 @@ export const getAppleAscApiKey = internalAction({
       },
     );
 
-    let targetFile = files[0];
-    if (args.projectId) {
-      const projectFiles = files.filter(
-        (f: FilePublicProjection) => f.projectId === args.projectId,
-      );
-      targetFile = projectFiles[0] || files[0];
-    }
+    const targetFile = selectCredentialFile(files, args.projectId, args.source);
 
     if (!targetFile) {
       throw new ConvexError(
