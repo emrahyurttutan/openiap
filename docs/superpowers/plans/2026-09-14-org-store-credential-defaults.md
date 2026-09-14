@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-14-org-store-credential-defaults-design.md`
 
+**Status:** all nine tasks implemented and committed on `feat/org-store-credential-defaults`.
+
 ## Global Constraints
 
 - All work happens in `packages/kit`. Run commands from that directory.
@@ -44,7 +46,7 @@ Moves the Apple ID normalizers out of `projects/mutation.ts` into a shared modul
   - `normalizeOptionalAppStoreKeyId(input: string | null): string | null`
   - Organization columns `defaultIosAppStoreIssuerId`, `defaultIosAppStoreKeyId`, `defaultIosAscIssuerId`, `defaultIosAscKeyId`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/convex/projects/storeCredentialValidation.test.ts`:
 
@@ -92,12 +94,12 @@ describe("store credential validation", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run convex/projects/storeCredentialValidation.test.ts`
 Expected: FAIL — cannot resolve `./storeCredentialValidation`.
 
-- [ ] **Step 3: Create the shared module**
+- [x] **Step 3: Create the shared module**
 
 Create `packages/kit/convex/projects/storeCredentialValidation.ts`:
 
@@ -167,12 +169,12 @@ export function normalizeOptionalAppStoreKeyId(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bunx vitest run convex/projects/storeCredentialValidation.test.ts`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Point `projects/mutation.ts` at the shared module**
+- [x] **Step 5: Point `projects/mutation.ts` at the shared module**
 
 Delete the local `normalizeAppStoreIssuerId` and `normalizeAppStoreKeyId` function bodies (currently at `convex/projects/mutation.ts:96-135`) and add to the import block at the top of the file:
 
@@ -185,7 +187,7 @@ import {
 
 Leave every call site (`convex/projects/mutation.ts:379-390`) unchanged.
 
-- [ ] **Step 6: Add the organization columns**
+- [x] **Step 6: Add the organization columns**
 
 In `packages/kit/convex/schema.ts`, inside `organizations: defineTable({ ... })`, immediately before `pendingDeletion: v.optional(v.boolean()),`:
 
@@ -205,12 +207,12 @@ In `packages/kit/convex/schema.ts`, inside `organizations: defineTable({ ... })`
     defaultIosAscKeyId: v.optional(v.union(v.string(), v.null())),
 ```
 
-- [ ] **Step 7: Run the lint gate and the full suite**
+- [x] **Step 7: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS. The suite is large; allow several minutes.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add convex/schema.ts convex/projects/storeCredentialValidation.ts \
@@ -249,7 +251,7 @@ The single place that decides "project value or organization default".
   - `pickCredentialFile<T>(files: T[], projectId): T | undefined`
   - `getOrganizationStoreDefaults` internal query at `internal.projects.storeCredentials.getOrganizationStoreDefaults`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/convex/projects/storeCredentials.test.ts`:
 
@@ -341,12 +343,12 @@ describe("pickCredentialFile", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run convex/projects/storeCredentials.test.ts`
 Expected: FAIL — cannot resolve `./storeCredentials`.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 Create `packages/kit/convex/projects/storeCredentials.ts`:
 
@@ -495,17 +497,17 @@ export const getOrganizationStoreDefaults = internalQuery({
 });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bunx vitest run convex/projects/storeCredentials.test.ts`
 Expected: PASS (9 tests).
 
-- [ ] **Step 5: Run the lint gate**
+- [x] **Step 5: Run the lint gate**
 
 Run: `bun run lint`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add convex/projects/storeCredentials.ts convex/projects/storeCredentials.test.ts
@@ -535,7 +537,7 @@ Replaces the cross-project borrowing in the Apple loaders and gives Google the s
 - Consumes: `pickCredentialFile` from `../projects/storeCredentials` (Task 2)
 - Produces: no signature changes. `getGooglePlayFileByProjectInternal({ projectId })`, `getAppleP8Key({ organizationId, projectId? })` and `getAppleAscApiKey({ organizationId, projectId? })` keep their existing arguments so their five call sites stay untouched.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/convex/files/credentialLookup.test.ts`:
 
@@ -659,12 +661,12 @@ describe("google play service account lookup", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run convex/files/credentialLookup.test.ts`
 Expected: FAIL — "falls back to the organization service account" returns `null` because the current implementation only reads the `by_project` index.
 
-- [ ] **Step 3: Add the organization fallback to the Google lookup**
+- [x] **Step 3: Add the organization fallback to the Google lookup**
 
 In `packages/kit/convex/files/internal.ts`, add to the import block at the top:
 
@@ -712,12 +714,12 @@ export const getGooglePlayFileByProjectInternal = internalQuery({
 });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bunx vitest run convex/files/credentialLookup.test.ts`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Remove cross-project borrowing from the Apple loaders**
+- [x] **Step 5: Remove cross-project borrowing from the Apple loaders**
 
 In `getAppleP8Key`, replace the selection block:
 
@@ -761,12 +763,12 @@ with:
 
 Leave both `if (!targetFile) throw ...` blocks exactly as they are — the ASC one's message text is matched by a string comparison in `convex/products/asc.ts:262`, so it must not change.
 
-- [ ] **Step 6: Run the lint gate and the full suite**
+- [x] **Step 6: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add convex/files/internal.ts convex/files/credentialLookup.test.ts
@@ -797,7 +799,7 @@ Lets an owner or admin write the four organization columns.
 - Consumes: Task 1's `normalizeOptionalAppStoreIssuerId`, `normalizeOptionalAppStoreKeyId`; `createError`, `ErrorCode`.
 - Produces: `api.organizations.mutation.updateStoreDefaults({ organizationId, defaultIosAppStoreIssuerId?, defaultIosAppStoreKeyId?, defaultIosAscIssuerId?, defaultIosAscKeyId? })`, each optional field `v.union(v.string(), v.null())`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/convex/organizations/storeDefaults.test.ts`:
 
@@ -942,12 +944,12 @@ describe("updateStoreDefaults", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run convex/organizations/storeDefaults.test.ts`
 Expected: FAIL — `updateStoreDefaults` is not exported from `./mutation`.
 
-- [ ] **Step 3: Write the mutation**
+- [x] **Step 3: Write the mutation**
 
 In `packages/kit/convex/organizations/mutation.ts`, add to the import block:
 
@@ -1026,17 +1028,17 @@ export const updateStoreDefaults = mutation({
 });
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bunx vitest run convex/organizations/storeDefaults.test.ts`
 Expected: PASS (5 tests).
 
-- [ ] **Step 5: Run the lint gate**
+- [x] **Step 5: Run the lint gate**
 
 Run: `bun run lint`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add convex/organizations/mutation.ts convex/organizations/storeDefaults.test.ts
@@ -1067,7 +1069,7 @@ Receipt verification, push-sync and the Apple webhook gate stop reading project 
 - Consumes: `resolveAppleCredentialIds` and `internal.projects.storeCredentials.getOrganizationStoreDefaults` (Task 2).
 - Produces: no new exports. Behavior change only.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `packages/kit/convex/projects/storeCredentials.test.ts`:
 
@@ -1118,12 +1120,12 @@ describe("resolved ids drive the ASC pair rule", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it passes already**
+- [x] **Step 2: Run test to verify it passes already**
 
 Run: `bunx vitest run convex/projects/storeCredentials.test.ts`
 Expected: PASS. These lock the contract the three call sites must preserve; they exercise the Task 2 resolver, so they pass before the edits below and must still pass after.
 
-- [ ] **Step 3: Update the receipt verifier**
+- [x] **Step 3: Update the receipt verifier**
 
 In `packages/kit/convex/purchases/ios.ts`, add to the import block:
 
@@ -1187,7 +1189,7 @@ with:
   };
 ```
 
-- [ ] **Step 4: Update push-sync**
+- [x] **Step 4: Update push-sync**
 
 In `packages/kit/convex/products/asc.ts`, add to the import block:
 
@@ -1225,7 +1227,7 @@ with:
 
 Leave the long explanatory comment above these lines and everything after them unchanged.
 
-- [ ] **Step 5: Update the Apple webhook gate**
+- [x] **Step 5: Update the Apple webhook gate**
 
 In `packages/kit/convex/webhooks/apple.ts`, add to the import block:
 
@@ -1263,12 +1265,12 @@ with:
 
 The missing-field *names* stay as they are: they name the project field an operator would fill in, and the SDKs match on those strings.
 
-- [ ] **Step 6: Run the lint gate and the full suite**
+- [x] **Step 6: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS. If `internal` is not already imported in any of the three files, add `import { internal } from "../_generated/api";`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add convex/purchases/ios.ts convex/products/asc.ts convex/webhooks/apple.ts \
@@ -1300,7 +1302,7 @@ Without this a correctly configured project reports "missing" and the dashboard,
 - Consumes: `resolveAppleCredentialIds`, `pickCredentialFile` (Task 2).
 - Produces: `getSetupStatus` response gains `usingOrganizationDefaults: { iosAppStoreIssuerId, iosAppStoreKeyId, iosAscKeyId, appleP8, appleAscP8, googleServiceAccount }`, all booleans.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/convex/projects/setupStatus.test.ts`:
 
@@ -1475,12 +1477,12 @@ describe("getSetupStatus inheritance", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run convex/projects/setupStatus.test.ts`
 Expected: FAIL — `usingOrganizationDefaults` is undefined and `ios.configured` is false.
 
-- [ ] **Step 3: Rewrite the handler**
+- [x] **Step 3: Rewrite the handler**
 
 In `packages/kit/convex/projects/setupStatus.ts`, add to the imports:
 
@@ -1590,17 +1592,17 @@ Replace the two upload flags at the end of the return with:
 
 Delete the now-unused `projectFiles` variable and the old comment block above the two flags.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bunx vitest run convex/projects/setupStatus.test.ts`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Run the lint gate and the full suite**
+- [x] **Step 5: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add convex/projects/setupStatus.ts convex/projects/setupStatus.test.ts
@@ -1631,7 +1633,7 @@ Makes `saveFile` accept an organization-level credential, keep one row per purpo
 - Consumes: `deleteFileAndStorageIfUnreferenced` from `./storage`, `getOrganizationById`/`getProjectById` from `../projects/helpers` (both already imported).
 - Produces: `api.files.mutation.promoteFileToOrganizationDefault({ fileId })` returning `{ success: true }`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/convex/files/organizationCredentials.test.ts`:
 
@@ -1915,12 +1917,12 @@ describe("organization-level credential files", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run convex/files/organizationCredentials.test.ts`
 Expected: FAIL — `promoteFileToOrganizationDefault` is not exported; the member and replacement cases also fail.
 
-- [ ] **Step 3: Add a shared purpose list and widen the role guard**
+- [x] **Step 3: Add a shared purpose list and widen the role guard**
 
 In `packages/kit/convex/files/mutation.ts`, add below `MAX_ACTIVE_FILE_UPLOAD_RESERVATIONS_PER_TARGET`:
 
@@ -1961,7 +1963,7 @@ with:
     ) {
 ```
 
-- [ ] **Step 4: Make the organization slot single-occupancy**
+- [x] **Step 4: Make the organization slot single-occupancy**
 
 Replace the `screenshotsToReplace` block:
 
@@ -2032,7 +2034,7 @@ to:
     }
 ```
 
-- [ ] **Step 5: Add the promote mutation**
+- [x] **Step 5: Add the promote mutation**
 
 Append to `packages/kit/convex/files/mutation.ts`:
 
@@ -2114,17 +2116,17 @@ export const promoteFileToOrganizationDefault = mutation({
 });
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `bunx vitest run convex/files/organizationCredentials.test.ts`
 Expected: PASS (7 tests).
 
-- [ ] **Step 7: Run the lint gate and the full suite**
+- [x] **Step 7: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS. `convex/projects/project-child-pending-deletion.test.ts` uses an `admin` membership for its credential saves, so the widened role guard does not break it.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add convex/files/mutation.ts convex/files/organizationCredentials.test.ts
@@ -2159,7 +2161,7 @@ Where the operator actually enters the credentials once.
   - `uploadCredentialFile({ generateUploadUrl, saveFile, organizationId, projectId, file, purpose, description }): Promise<void>` — throws `Error` with a readable message on every failure code.
   - `<StoreCredentialsCard organizationId canEdit organization />`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `packages/kit/src/pages/auth/organization/StoreCredentialsCard.test.tsx`:
 
@@ -2332,12 +2334,12 @@ describe("StoreCredentialsCard", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run src/pages/auth/organization/StoreCredentialsCard.test.tsx`
 Expected: FAIL — cannot resolve `./StoreCredentialsCard`.
 
-- [ ] **Step 3: Write the upload helper**
+- [x] **Step 3: Write the upload helper**
 
 Create `packages/kit/src/pages/auth/organization/storeCredentialUpload.ts`:
 
@@ -2435,7 +2437,7 @@ export function assertCredentialExtension(
 }
 ```
 
-- [ ] **Step 4: Write the card**
+- [x] **Step 4: Write the card**
 
 Create `packages/kit/src/pages/auth/organization/StoreCredentialsCard.tsx`:
 
@@ -2714,7 +2716,7 @@ export function StoreCredentialsCard({
 }
 ```
 
-- [ ] **Step 5: Render the card on the settings page**
+- [x] **Step 5: Render the card on the settings page**
 
 In `packages/kit/src/pages/auth/organization/settings.tsx`, add the import:
 
@@ -2734,17 +2736,17 @@ and render it directly after the closing `</div>` of the "Organization Details" 
       )}
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `bunx vitest run src/pages/auth/organization/StoreCredentialsCard.test.tsx`
 Expected: PASS (5 tests).
 
-- [ ] **Step 7: Run the lint gate and the full suite**
+- [x] **Step 7: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/pages/auth/organization/storeCredentialUpload.ts \
@@ -2777,7 +2779,7 @@ Closes the loop: the operator can see which values come from the organization an
 - Consumes: `api.files.mutation.promoteFileToOrganizationDefault` (Task 7), `api.projects.query.getSetupStatus`'s `usingOrganizationDefaults` (Task 6).
 - Produces: no new exports.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append inside the existing `describe("ProjectSettings", ...)` block in `packages/kit/src/pages/auth/organization/project/settings.test.tsx`:
 
@@ -2827,12 +2829,12 @@ adding `promoteFile: vi.fn()` to the `vi.hoisted` mocks object and
 `promoteFileToOrganizationDefault: "files.promoteFileToOrganizationDefault"`
 to the `@/convex` mock's `files.mutation` object.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bunx vitest run src/pages/auth/organization/project/settings.test.tsx`
 Expected: FAIL — neither the hint text nor the promote button exists.
 
-- [ ] **Step 3: Read the organization defaults on the project page**
+- [x] **Step 3: Read the organization defaults on the project page**
 
 In `packages/kit/src/pages/auth/organization/project/settings.tsx`, alongside the existing `files` query, add:
 
@@ -2859,7 +2861,7 @@ In `packages/kit/src/pages/auth/organization/project/settings.tsx`, alongside th
       : null;
 ```
 
-- [ ] **Step 4: Add the public organization defaults query**
+- [x] **Step 4: Add the public organization defaults query**
 
 Append to `packages/kit/convex/organizations/query.ts`:
 
@@ -2895,7 +2897,7 @@ export const getStoreDefaults = query({
 
 If `query`, `v` or `getAuthUserId` are not yet imported in that file, add them to match `convex/organizations/mutation.ts`'s import style.
 
-- [ ] **Step 5: Render the hints and the promote button**
+- [x] **Step 5: Render the hints and the promote button**
 
 Below the Issuer ID input (`settings.tsx:1274`), the In-App Purchase Key ID input (`:1311`) and the ASC Key ID input (`:1598`), add the matching hint. For the Issuer ID:
 
@@ -2953,7 +2955,7 @@ with the handler defined alongside the other file handlers:
   };
 ```
 
-- [ ] **Step 6: Reuse the shared upload helper**
+- [x] **Step 6: Reuse the shared upload helper**
 
 Replace the bodies of `handleIosFileUpload`, `handleIosAscFileUpload` and the Android service-account upload handler with calls to `uploadCredentialFile` from Task 8, keeping each handler's existing `setUploading*` state and toast messages:
 
@@ -2997,17 +2999,17 @@ For example `handleIosFileUpload` becomes:
 
 Delete the now-unused local `ensureFileSaveSucceeded` helper only if no other handler still calls it.
 
-- [ ] **Step 7: Run test to verify it passes**
+- [x] **Step 7: Run test to verify it passes**
 
 Run: `bunx vitest run src/pages/auth/organization/project/settings.test.tsx`
 Expected: PASS, including the two new cases and every pre-existing one.
 
-- [ ] **Step 8: Run the lint gate and the full suite**
+- [x] **Step 8: Run the lint gate and the full suite**
 
 Run: `bun run lint && bun run test`
 Expected: both PASS.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/pages/auth/organization/project/settings.tsx \
