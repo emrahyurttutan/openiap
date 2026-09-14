@@ -13,6 +13,10 @@ import {
   normalizeReportingCurrency,
 } from "../utils/currency";
 import { getApiKeyByKey } from "../apiKeys/helpers";
+import {
+  normalizeAppStoreIssuerId,
+  normalizeAppStoreKeyId,
+} from "./storeCredentialValidation";
 
 const projectPlatformValidator = v.union(
   v.literal("react-native"),
@@ -91,47 +95,6 @@ export function normalizeAppAppleId(input: number): number {
   }
 
   return input;
-}
-
-function normalizeAppStoreIssuerId(input: string): string {
-  const normalized = input.trim();
-  if (!normalized) {
-    throw createError(
-      ErrorCode.INVALID_INPUT,
-      "App Store Connect Issuer ID cannot be empty.",
-    );
-  }
-
-  const issuerPattern =
-    /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i;
-  if (!issuerPattern.test(normalized)) {
-    throw createError(
-      ErrorCode.INVALID_INPUT,
-      "App Store Connect Issuer ID must be a valid UUID (e.g. 12345678-ABCD-1234-ABCD-1234567890AB).",
-    );
-  }
-
-  return normalized;
-}
-
-function normalizeAppStoreKeyId(input: string): string {
-  const normalized = input.trim().toUpperCase();
-  if (!normalized) {
-    throw createError(
-      ErrorCode.INVALID_INPUT,
-      "App Store Connect Key ID cannot be empty.",
-    );
-  }
-
-  const keyPattern = /^[A-Z0-9]{10}$/;
-  if (!keyPattern.test(normalized)) {
-    throw createError(
-      ErrorCode.INVALID_INPUT,
-      "App Store Connect Key ID must be 10 uppercase letters or numbers (e.g. ABCDE12345).",
-    );
-  }
-
-  return normalized;
 }
 
 function normalizeHorizonAppId(input: string): string {

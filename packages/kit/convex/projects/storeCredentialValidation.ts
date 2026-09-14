@@ -1,9 +1,7 @@
 import { createError, ErrorCode } from "../utils/errors";
 
-// Apple issues one Issuer ID per team and 10-character Key IDs per key.
-// Both the project-level inputs (projects/mutation.ts) and the
-// organization-level defaults (organizations/mutation.ts) validate through
-// this module so the two surfaces cannot drift apart.
+// Shared by the project inputs (projects/mutation.ts) and the organization
+// defaults (organizations/mutation.ts) so the two cannot drift apart.
 
 export function normalizeAppStoreIssuerId(input: string): string {
   const normalized = input.trim();
@@ -46,8 +44,7 @@ export function normalizeAppStoreKeyId(input: string): string {
   return normalized;
 }
 
-// Organization defaults are clearable: `null` or a blank string removes the
-// column. Anything else must still pass the strict format check above.
+// Organization defaults are clearable: null or blank removes the column.
 export function normalizeOptionalAppStoreIssuerId(
   input: string | null,
 ): string | null {
