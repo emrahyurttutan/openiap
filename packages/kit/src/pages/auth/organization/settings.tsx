@@ -6,6 +6,7 @@ import type { Id } from "@/convex";
 import { toast } from "sonner";
 import { CustomDropdown } from "../../../components/CustomDropdown";
 import { ButtonPrimary } from "@/components/ButtonPrimary";
+import { StoreCredentialsCard } from "./StoreCredentialsCard";
 import {
   Building2,
   Users,
@@ -327,6 +328,13 @@ export default function OrganizationSettings() {
           </div>
         )}
       </div>
+
+      {/* Store Credentials */}
+      <StoreCredentialsCard
+        organizationId={currentOrg._id}
+        organization={currentOrg}
+        canEdit={canEdit}
+      />
 
       {/* Team Members */}
       <div className="bg-card rounded border border-border p-6">
