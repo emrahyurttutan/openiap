@@ -5,6 +5,10 @@ import {
   resolveProjectByApiKeyFromDb,
   resolveProjectByIdForCurrentUserFromDb,
 } from "./helpers";
+import {
+  pickCredentialFile,
+  resolveAppleCredentialIds,
+} from "./storeCredentials";
 
 // Public query — surfaces which platforms a project has configured so
 // the dashboard, the SDK, and the MCP server can return a precise
@@ -33,6 +37,16 @@ export const getSetupStatus = query({
     amazon: platformShape,
     appleP8Uploaded: v.boolean(),
     googleServiceAccountUploaded: v.boolean(),
+    // Which credentials this project takes from its organization, so the
+    // dashboard and MCP tools can say "inherited" instead of "configured here".
+    usingOrganizationDefaults: v.object({
+      iosAppStoreIssuerId: v.boolean(),
+      iosAppStoreKeyId: v.boolean(),
+      iosAscKeyId: v.boolean(),
+      appleP8: v.boolean(),
+      appleAscP8: v.boolean(),
+      googleServiceAccount: v.boolean(),
+    }),
   }),
   handler: async (ctx, args) => {
     const resolved = args.projectId
@@ -53,24 +67,45 @@ export const getSetupStatus = query({
         amazon: empty,
         appleP8Uploaded: false,
         googleServiceAccountUploaded: false,
+        usingOrganizationDefaults: {
+          iosAppStoreIssuerId: false,
+          iosAppStoreKeyId: false,
+          iosAscKeyId: false,
+          appleP8: false,
+          appleAscP8: false,
+          googleServiceAccount: false,
+        },
       };
     }
 
-    // Pull the project's uploaded files once so we can both report
-    // field-level config AND surface .p8 / service-account presence
-    // in the same response — the dashboard's setup card was always
-    // rendering "missing" because the previous shape hardcoded both
-    // flags to false.
-    const projectFiles = await ctx.db
+    // Read the whole org's credential files, not just this project's rows:
+    // a project with none of its own inherits the org-level ones, and
+    // reporting those as missing sends the operator hunting for nothing.
+    const organizationFiles = await ctx.db
       .query("files")
-      .withIndex("by_project", (q) => q.eq("projectId", project._id))
+      .withIndex("by_organization", (q) =>
+        q.eq("organizationId", project.organizationId),
+      )
       .collect();
+
+    const credentialFile = (purpose: string) =>
+      pickCredentialFile(
+        organizationFiles.filter((file) => file.purpose === purpose),
+        project._id,
+      );
+
+    const appleP8File = credentialFile("apple_p8_key");
+    const appleAscFile = credentialFile("apple_p8_asc_api_key");
+    const googleServiceAccountFile = credentialFile("android_service_account");
+
+    const organization = await ctx.db.get(project.organizationId);
+    const resolvedApple = resolveAppleCredentialIds(project, organization);
 
     const iosMissing: string[] = [];
     if (!project.iosBundleId) iosMissing.push("iosBundleId");
     if (!project.iosAppAppleId) iosMissing.push("iosAppAppleId");
-    if (!project.iosAppStoreIssuerId) iosMissing.push("iosAppStoreIssuerId");
-    if (!project.iosAppStoreKeyId) iosMissing.push("iosAppStoreKeyId");
+    if (!resolvedApple.issuerId) iosMissing.push("iosAppStoreIssuerId");
+    if (!resolvedApple.keyId) iosMissing.push("iosAppStoreKeyId");
 
     const androidMissing: string[] = [];
     if (!project.androidPackageName) androidMissing.push("androidPackageName");
@@ -108,17 +143,20 @@ export const getSetupStatus = query({
         configured: amazonConfigured,
         missing: amazonMissing,
       },
-      // The webhook receivers ALSO need the .p8 / service-account JSON
-      // file uploaded to the project; check the `files` table directly
-      // so the setup card reflects what the operator has actually
-      // uploaded instead of always reporting "missing".
-      appleP8Uploaded: projectFiles.some(
-        (f) =>
-          f.purpose === "apple_p8_key" || f.purpose === "apple_p8_asc_api_key",
-      ),
-      googleServiceAccountUploaded: projectFiles.some(
-        (f) => f.purpose === "android_service_account",
-      ),
+      // The webhook receivers also need the .p8 / service-account file, so
+      // report whichever row this project actually resolves.
+      appleP8Uploaded: !!appleP8File || !!appleAscFile,
+      googleServiceAccountUploaded: !!googleServiceAccountFile,
+      usingOrganizationDefaults: {
+        iosAppStoreIssuerId: resolvedApple.sources.issuerId === "organization",
+        iosAppStoreKeyId: resolvedApple.sources.keyId === "organization",
+        iosAscKeyId: resolvedApple.sources.ascKeyId === "organization",
+        appleP8: !!appleP8File && appleP8File.projectId === undefined,
+        appleAscP8: !!appleAscFile && appleAscFile.projectId === undefined,
+        googleServiceAccount:
+          !!googleServiceAccountFile &&
+          googleServiceAccountFile.projectId === undefined,
+      },
     };
   },
 });
