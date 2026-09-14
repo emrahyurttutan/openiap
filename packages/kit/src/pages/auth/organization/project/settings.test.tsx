@@ -28,9 +28,7 @@ const mocks = vi.hoisted(() => ({
   toastError: vi.fn(),
   toastSuccess: vi.fn(),
   validateScreenshot: vi.fn(),
-  promoteFile: vi.fn(),
   files: [] as Array<Record<string, unknown>>,
-  organizationDefaults: undefined as Record<string, unknown> | undefined,
 }));
 
 const FLAT_PNG_BYTES = Uint8Array.from(
@@ -80,15 +78,9 @@ vi.mock("convex/react", () => ({
       return mocks.generateUploadUrl;
     }
     if (reference === "files.saveFile") return mocks.saveFile;
-    if (reference === "files.promoteFileToOrganizationDefault") {
-      return mocks.promoteFile;
-    }
     return mocks.otherMutation;
   },
-  useQuery: (reference: string) =>
-    reference === "organizations.getStoreDefaults"
-      ? mocks.organizationDefaults
-      : mocks.files,
+  useQuery: () => mocks.files,
 }));
 
 vi.mock("@/convex", () => ({
@@ -101,15 +93,10 @@ vi.mock("@/convex", () => ({
       },
       mutation: {
         generateUploadUrl: "files.generateUploadUrl",
-        promoteFileToOrganizationDefault:
-          "files.promoteFileToOrganizationDefault",
         remove: "files.remove",
         saveFile: "files.saveFile",
       },
       query: { list: "files.list" },
-    },
-    organizations: {
-      query: { getStoreDefaults: "organizations.getStoreDefaults" },
     },
     projects: { mutation: { updateProject: "projects.updateProject" } },
   },
@@ -140,10 +127,7 @@ describe("ProjectSettings", () => {
     mocks.toastError.mockReset();
     mocks.toastSuccess.mockReset();
     mocks.validateScreenshot.mockReset();
-    mocks.promoteFile.mockReset();
-    mocks.promoteFile.mockResolvedValue({ success: true });
     mocks.files = [];
-    mocks.organizationDefaults = undefined;
     mocks.generateUploadUrl.mockResolvedValue({
       uploadUrl: "https://upload.example.test",
       uploadReservationId: "fileUploadReservations_test",
@@ -587,90 +571,5 @@ describe("ProjectSettings", () => {
     });
     expect(mocks.toastSuccess).not.toHaveBeenCalled();
     expect(mocks.saveFile).not.toHaveBeenCalled();
-  });
-
-  it("shows the inherited hint for a blank credential field", () => {
-    mocks.project = {
-      ...mocks.project,
-      iosAppStoreKeyId: "",
-    };
-    mocks.organizationDefaults = {
-      defaultIosAppStoreIssuerId: "11111111-1111-1111-1111-111111111111",
-      defaultIosAppStoreKeyId: "ORGKEY1234",
-    };
-    render(<ProjectSettings />);
-    expect(
-      screen.getByText("Inherited from organization defaults: ORGKEY1234"),
-    ).toBeTruthy();
-  });
-
-  function renderWithBlankAppleCredentials(
-    organizationDefaults: Record<string, unknown>,
-  ) {
-    mocks.project = {
-      ...mocks.project,
-      iosAppStoreIssuerId: "",
-      iosAppStoreKeyId: "",
-    };
-    mocks.organizationDefaults = organizationDefaults;
-    render(<ProjectSettings />);
-    // The save button also needs a real edit before it enables.
-    fireEvent.change(screen.getByPlaceholderText("com.example.ios"), {
-      target: { value: "com.example.renamed" },
-    });
-    return screen.getByRole("button", { name: /Save identifiers/i });
-  }
-
-  it("lets a project save while inheriting blank apple credentials", () => {
-    const save = renderWithBlankAppleCredentials({
-      defaultIosAppStoreIssuerId: "11111111-1111-1111-1111-111111111111",
-      defaultIosAppStoreKeyId: "ORGKEY1234",
-    });
-    expect(save.hasAttribute("disabled")).toBe(false);
-  });
-
-  it("still blocks the save when nothing can be inherited", () => {
-    const save = renderWithBlankAppleCredentials({});
-    expect(save.hasAttribute("disabled")).toBe(true);
-  });
-
-  it("keeps an inherited service account visible after promotion", () => {
-    mocks.project = { ...mocks.project, androidPackageName: "" };
-    mocks.files = [
-      {
-        _id: "files_org_sa",
-        fileName: "service-account.json",
-        fileSize: 2048,
-        purpose: "android_service_account",
-        projectId: undefined,
-      },
-    ];
-    render(<ProjectSettings />);
-    expect(
-      screen.getByText(
-        "Inherited from organization defaults: service-account.json",
-      ),
-    ).toBeTruthy();
-  });
-
-  it("offers to promote a project credential file to the organization", async () => {
-    mocks.files = [
-      {
-        _id: "files_own",
-        fileName: "AuthKey_ABCDE12345.p8",
-        fileSize: 1024,
-        purpose: "apple_p8_key",
-        projectId: "projects_test",
-      },
-    ];
-    render(<ProjectSettings />);
-    const promote = screen.getByRole("button", {
-      name: "Make this the organization default",
-    });
-    fireEvent.click(promote);
-
-    await waitFor(() => {
-      expect(mocks.promoteFile).toHaveBeenCalledWith({ fileId: "files_own" });
-    });
   });
 });

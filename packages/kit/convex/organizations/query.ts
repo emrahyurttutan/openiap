@@ -112,34 +112,6 @@ export const getOrganizationBySlug = query({
   },
 });
 
-// Read-only view of the store credential defaults for the project settings
-// page, which shows what a blank project field will inherit.
-export const getStoreDefaults = query({
-  args: { organizationId: v.id("organizations") },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return null;
-
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_org_and_user", (q) =>
-        q.eq("organizationId", args.organizationId).eq("userId", userId),
-      )
-      .first();
-    if (!membership) return null;
-
-    const organization = await ctx.db.get(args.organizationId);
-    if (!organization) return null;
-
-    return {
-      defaultIosAppStoreIssuerId: organization.defaultIosAppStoreIssuerId,
-      defaultIosAppStoreKeyId: organization.defaultIosAppStoreKeyId,
-      defaultIosAscIssuerId: organization.defaultIosAscIssuerId,
-      defaultIosAscKeyId: organization.defaultIosAscKeyId,
-    };
-  },
-});
-
 export const hasOrganizations = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
