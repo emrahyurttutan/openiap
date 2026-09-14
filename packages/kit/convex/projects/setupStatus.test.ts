@@ -187,3 +187,60 @@ describe("getSetupStatus inheritance", () => {
     });
   });
 });
+
+// Restored from the pre-existing suite: Amazon readiness has two paths and a
+// sandbox-only project must still count as configured.
+function amazonProject(overrides: Record<string, unknown> = {}) {
+  return {
+    _id: "projects_a",
+    organizationId: "organizations_a",
+    iosBundleId: "com.example.app",
+    iosAppAppleId: "123456789",
+    iosAppStoreIssuerId: "issuer_test",
+    iosAppStoreKeyId: "key_test",
+    androidPackageName: "com.example.app",
+    horizonEnabled: true,
+    horizonAppId: "horizon_app",
+    horizonAppSecret: "horizon_secret",
+    ...overrides,
+  };
+}
+
+describe("getSetupStatus Amazon readiness", () => {
+  beforeEach(() => {
+    helperMocks.resolveProjectByIdForCurrentUserFromDb.mockReset();
+  });
+
+  it("treats an explicit sandbox-only project as configured", async () => {
+    helperMocks.resolveProjectByIdForCurrentUserFromDb.mockResolvedValue({
+      project: amazonProject({
+        amazonSandboxEnabled: true,
+        amazonSharedSecret: undefined,
+      }),
+    });
+
+    const result = await getSetupStatus._handler(makeCtx([]), {
+      projectId: "projects_a" as never,
+    });
+
+    expect(result.amazon).toEqual({ configured: true, missing: [] });
+  });
+
+  it("keeps Amazon unconfigured when neither readiness path is enabled", async () => {
+    helperMocks.resolveProjectByIdForCurrentUserFromDb.mockResolvedValue({
+      project: amazonProject({
+        amazonSandboxEnabled: undefined,
+        amazonSharedSecret: undefined,
+      }),
+    });
+
+    const result = await getSetupStatus._handler(makeCtx([]), {
+      projectId: "projects_a" as never,
+    });
+
+    expect(result.amazon).toEqual({
+      configured: false,
+      missing: ["amazonSharedSecret"],
+    });
+  });
+});
