@@ -11,6 +11,7 @@ import {
   deleteFileAndStorageIfUnreferenced,
   deleteStorageIfUnreferenced,
 } from "./storage";
+import { pickCredentialFile } from "../projects/storeCredentials";
 
 export const UPLOAD_RESERVATION_PRUNE_BATCH_SIZE = 200;
 
@@ -314,19 +315,34 @@ export const getAppleReviewScreenshotByProjectInternal = internalQuery({
 });
 
 // Internal query to get Google Play service account file by project.
-// Uses the `by_project` index on `files` and filters by purpose through
-// the query builder so we only read rows that could match — no full
-// org scan into memory.
+// The project's own row is a narrow `by_project` index read. Only when it
+// has none do we scan the org's rows for that purpose — bounded by project
+// count — to find the org-level default. Another project's row never wins.
 export const getGooglePlayFileByProjectInternal = internalQuery({
   args: {
     projectId: v.id("projects"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const projectFile = await ctx.db
       .query("files")
       .withIndex("by_project", (q) => q.eq("projectId", args.projectId))
       .filter((q) => q.eq(q.field("purpose"), "android_service_account"))
       .first();
+    if (projectFile) return projectFile;
+
+    const project = await ctx.db.get(args.projectId);
+    if (!project) return null;
+
+    const organizationFiles = await ctx.db
+      .query("files")
+      .withIndex("by_org_and_purpose", (q) =>
+        q
+          .eq("organizationId", project.organizationId)
+          .eq("purpose", "android_service_account"),
+      )
+      .collect();
+
+    return pickCredentialFile(organizationFiles, undefined) ?? null;
   },
 });
 
@@ -346,14 +362,10 @@ export const getAppleP8Key = internalAction({
       },
     );
 
-    // Filter by project if specified
-    let targetFile = files[0];
-    if (args.projectId) {
-      const projectFiles = files.filter(
-        (f: any) => f.projectId === args.projectId,
-      );
-      targetFile = projectFiles[0] || files[0];
-    }
+    // The project's own key, then the org default. Never another
+    // project's: the old `files[0]` fallback signed one project's
+    // requests with a different project's credential.
+    const targetFile = pickCredentialFile(files, args.projectId);
 
     if (!targetFile) {
       throw new ConvexError("No Apple P8 key found for this organization");
@@ -398,13 +410,7 @@ export const getAppleAscApiKey = internalAction({
       },
     );
 
-    let targetFile = files[0];
-    if (args.projectId) {
-      const projectFiles = files.filter(
-        (f: FilePublicProjection) => f.projectId === args.projectId,
-      );
-      targetFile = projectFiles[0] || files[0];
-    }
+    const targetFile = pickCredentialFile(files, args.projectId);
 
     if (!targetFile) {
       throw new ConvexError(
