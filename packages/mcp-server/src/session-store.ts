@@ -6,8 +6,7 @@ interface SessionEntry<T> {
 const MAX_MCP_SESSIONS = 256;
 const MCP_SESSION_IDLE_TTL_MS = 15 * 60 * 1000;
 export const MCP_SESSION_CAPACITY_RETRY_AFTER_SECONDS = 5;
-export const MCP_SESSION_CAPACITY_MESSAGE =
-  "MCP session capacity reached. Retry after 5s.";
+export const MCP_SESSION_CAPACITY_MESSAGE = 'MCP session capacity reached. Retry after 5s.';
 
 interface ClosableSession {
   close: () => void | Promise<void>;
@@ -35,10 +34,10 @@ export class BoundedSessionStore<T> {
 
   constructor(private readonly options: BoundedSessionStoreOptions<T>) {
     if (!Number.isSafeInteger(options.maxSize) || options.maxSize < 1) {
-      throw new Error("session maxSize must be a positive integer");
+      throw new Error('session maxSize must be a positive integer');
     }
     if (!Number.isFinite(options.idleTtlMs) || options.idleTtlMs <= 0) {
-      throw new Error("session idleTtlMs must be positive");
+      throw new Error('session idleTtlMs must be positive');
     }
     this.now = options.now ?? (() => Date.now());
   }
@@ -80,13 +79,9 @@ export class BoundedSessionStore<T> {
 
     return {
       commit: (sessionId, value) => {
-        if (
-          !pending ||
-          this.closed ||
-          generation !== this.reservationGeneration
-        ) {
+        if (!pending || this.closed || generation !== this.reservationGeneration) {
           pending = false;
-          throw new Error("session reservation is no longer active");
+          throw new Error('session reservation is no longer active');
         }
         release();
         const previous = this.entries.get(sessionId);
@@ -146,13 +141,12 @@ export class BoundedSessionStore<T> {
 }
 
 export function createMcpSessionStore<T extends ClosableSession>(
-  logger: Pick<Console, "error">,
+  logger: Pick<Console, 'error'>,
 ): BoundedSessionStore<T> {
   return new BoundedSessionStore<T>({
     maxSize: MAX_MCP_SESSIONS,
     idleTtlMs: MCP_SESSION_IDLE_TTL_MS,
     dispose: (transport) => transport.close(),
-    onDisposeError: (error) =>
-      logger.error("IAPKit MCP session cleanup failed:", error),
+    onDisposeError: (error) => logger.error('IAPKit MCP session cleanup failed:', error),
   });
 }

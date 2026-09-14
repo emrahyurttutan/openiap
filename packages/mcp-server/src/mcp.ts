@@ -1,30 +1,30 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import type {
   ServerNotification,
   ServerRequest,
   ToolAnnotations,
-} from "@modelcontextprotocol/sdk/types.js";
-import { z } from "zod";
+} from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
 
-import { INSUFFICIENT_API_KEY_SCOPE_MESSAGE, isSecretApiKey } from "./auth.js";
-import { kitClient, KitHttpError, normalizeKitBaseUrl } from "./kit-client.js";
+import { INSUFFICIENT_API_KEY_SCOPE_MESSAGE, isSecretApiKey } from './auth.js';
+import { kitClient, KitHttpError, normalizeKitBaseUrl } from './kit-client.js';
 
 // MCP server for IAPKit. Every tool funnels through `withClient`
 // so Authorization bearer / IAPKIT_API_KEY config is consistent and errors
 // surface in a uniform `{ ok: false, error }` shape that LLMs handle predictably.
 
-export const IAPKIT_MCP_SERVER_NAME = "iapkit-mcp";
-export const IAPKIT_MCP_SERVER_VERSION = "0.1.0";
-const IAPKIT_TOOL_PREFIX = "iapkit";
+export const IAPKIT_MCP_SERVER_NAME = 'iapkit-mcp';
+export const IAPKIT_MCP_SERVER_VERSION = '0.1.0';
+const IAPKIT_TOOL_PREFIX = 'iapkit';
 const SETUP_FRAMEWORKS = [
-  "expo",
-  "react-native",
-  "flutter",
-  "kmp",
-  "godot",
-  "ios",
-  "android",
+  'expo',
+  'react-native',
+  'flutter',
+  'kmp',
+  'godot',
+  'ios',
+  'android',
 ] as const;
 
 type ToolExtra = RequestHandlerExtra<ServerRequest, ServerNotification>;
@@ -35,11 +35,11 @@ const OPTIONAL_BASE_URL = z
   .url()
   .optional()
   .describe(
-    "Override IAPKit base URL. Defaults to IAPKIT_BASE_URL, then https://iap.biapp.com.tr.",
+    'Override IAPKit base URL. Defaults to IAPKIT_BASE_URL, then https://iap.biapp.com.tr.',
   );
 
-const API_KEY_PLACEHOLDER = "<IAPKIT_SECRET_KEY>";
-const PUBLISHABLE_KEY_PLACEHOLDER = "<IAPKIT_PUBLISHABLE_KEY>";
+const API_KEY_PLACEHOLDER = '<IAPKIT_SECRET_KEY>';
+const PUBLISHABLE_KEY_PLACEHOLDER = '<IAPKIT_PUBLISHABLE_KEY>';
 const MAX_API_KEY_LENGTH = 128;
 const MAX_KIT_ID_LENGTH = 256;
 const MAX_CLIENT_PAYLOAD_BYTES = 16 * 1024;
@@ -59,41 +59,34 @@ const WRITE_TOOL: ToolAnnotations = {
 };
 
 function kitTextParam(name: string, maxLength?: number) {
-  const schema =
-    maxLength === undefined ? z.string() : z.string().max(maxLength);
+  const schema = maxLength === undefined ? z.string() : z.string().max(maxLength);
   return schema.refine((value) => value.trim().length > 0, {
     message: `${name} must not be blank`,
   });
 }
 
-const PRODUCT_ID_PARAM = kitTextParam("productId", MAX_KIT_ID_LENGTH);
-const USER_ID_PARAM = kitTextParam("userId", MAX_KIT_ID_LENGTH);
-const TITLE_PARAM = kitTextParam("title");
-const ISO_DAY_PARAM = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD");
-const PRICE_AMOUNT_MICROS_PARAM = z
-  .number()
-  .int()
-  .nonnegative()
-  .max(MAX_PRICE_AMOUNT_MICROS);
+const PRODUCT_ID_PARAM = kitTextParam('productId', MAX_KIT_ID_LENGTH);
+const USER_ID_PARAM = kitTextParam('userId', MAX_KIT_ID_LENGTH);
+const TITLE_PARAM = kitTextParam('title');
+const ISO_DAY_PARAM = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
+const PRICE_AMOUNT_MICROS_PARAM = z.number().int().nonnegative().max(MAX_PRICE_AMOUNT_MICROS);
 const API_KEY_PARAM = z
   .string()
   .max(MAX_API_KEY_LENGTH)
   .refine((value) => value.trim().length > 0, {
-    message: "apiKey must not be blank",
+    message: 'apiKey must not be blank',
   })
   .refine((value) => !/\s/.test(value), {
-    message: "apiKey must not contain whitespace",
+    message: 'apiKey must not contain whitespace',
   });
 
 const OPTIONAL_API_KEY = API_KEY_PARAM.optional().describe(
-  "IAPKit secret admin key. Defaults to the MCP Authorization bearer token, then IAPKIT_API_KEY.",
+  'IAPKit secret admin key. Defaults to the MCP Authorization bearer token, then IAPKIT_API_KEY.',
 );
 
 function validateApiKey(apiKey: string): string | null {
-  if (!apiKey.trim()) return "apiKey must not be blank";
-  if (/\s/.test(apiKey)) return "apiKey must not contain whitespace";
+  if (!apiKey.trim()) return 'apiKey must not be blank';
+  if (/\s/.test(apiKey)) return 'apiKey must not contain whitespace';
   if (apiKey.length > MAX_API_KEY_LENGTH) {
     return `apiKey must be at most ${MAX_API_KEY_LENGTH} characters`;
   }
@@ -107,10 +100,7 @@ function resolveApiKey(
   return opts.apiKey ?? extra?.authInfo?.token ?? process.env.IAPKIT_API_KEY;
 }
 
-function withClient(
-  opts: { apiKey?: string; baseUrl?: string },
-  extra?: ToolExtra,
-) {
+function withClient(opts: { apiKey?: string; baseUrl?: string }, extra?: ToolExtra) {
   const apiKey = resolveApiKey(opts, extra);
   if (!apiKey) {
     throw new Error(
@@ -134,7 +124,7 @@ function ok(payload: unknown) {
   return {
     content: [
       {
-        type: "text" as const,
+        type: 'text' as const,
         text: JSON.stringify(payload, null, 2),
       },
     ],
@@ -150,16 +140,13 @@ function err(error: unknown, apiKey?: string) {
           message: redactSecrets(error.message, apiKey),
         }
       : {
-          message: redactSecrets(
-            error instanceof Error ? error.message : String(error),
-            apiKey,
-          ),
+          message: redactSecrets(error instanceof Error ? error.message : String(error), apiKey),
         };
   return {
     isError: true,
     content: [
       {
-        type: "text" as const,
+        type: 'text' as const,
         text: JSON.stringify({ ok: false, error: detail }, null, 2),
       },
     ],
@@ -167,36 +154,30 @@ function err(error: unknown, apiKey?: string) {
 }
 
 function redactSecrets(value: unknown, apiKey?: string): unknown {
-  if (typeof value === "string") {
+  if (typeof value === 'string') {
     return redactSecretString(value, apiKey);
   }
   if (Array.isArray(value)) {
     return value.map((item) => redactSecrets(item, apiKey));
   }
-  if (value && typeof value === "object") {
+  if (value && typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [
-        key,
-        redactSecrets(item, apiKey),
-      ]),
+      Object.entries(value).map(([key, item]) => [key, redactSecrets(item, apiKey)]),
     );
   }
   return value;
 }
 
 function redactSecretString(value: string, apiKey?: string): string {
-  const knownSecrets = [apiKey, process.env.IAPKIT_API_KEY].filter(
-    (secret): secret is string => Boolean(secret?.trim()),
+  const knownSecrets = [apiKey, process.env.IAPKIT_API_KEY].filter((secret): secret is string =>
+    Boolean(secret?.trim()),
   );
   let redacted = value;
   for (const secret of knownSecrets) {
     redacted = redacted.split(secret).join(API_KEY_PLACEHOLDER);
   }
   // Admin credentials are bearer-only; known webhook path keys are replaced above.
-  return redacted.replace(
-    /(Authorization:\s*Bearer\s+)[^\s"]+/gi,
-    `$1${API_KEY_PLACEHOLDER}`,
-  );
+  return redacted.replace(/(Authorization:\s*Bearer\s+)[^\s"]+/gi, `$1${API_KEY_PLACEHOLDER}`);
 }
 
 function registerTool(
@@ -230,7 +211,7 @@ export function createIapKitMcpServer(): McpServer {
   const server = new McpServer({
     name: IAPKIT_MCP_SERVER_NAME,
     version: IAPKIT_MCP_SERVER_VERSION,
-    websiteUrl: "https://iap.biapp.com.tr",
+    websiteUrl: 'https://iap.biapp.com.tr',
   });
   registerIapKitTools(server);
   return server;
@@ -242,34 +223,28 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "setup",
-    "Print a copy/pasteable mobile IAPKit integration snippet using a restricted publishable key. Does not modify files or expose the MCP secret key.",
+    'setup',
+    'Print a copy/pasteable mobile IAPKit integration snippet using a restricted publishable key. Does not modify files or expose the MCP secret key.',
     {
       framework: z
         .enum(SETUP_FRAMEWORKS)
-        .describe("Which framework SDK or native platform to wire."),
+        .describe('Which framework SDK or native platform to wire.'),
       apiKey: z
         .string()
         .optional()
         .describe(
-          "Accepted for compatibility, but never embedded in generated snippets. Mobile code must use a separate publishable key.",
+          'Accepted for compatibility, but never embedded in generated snippets. Mobile code must use a separate publishable key.',
         ),
-      productId: PRODUCT_ID_PARAM.optional().describe(
-        "Default productId to seed.",
-      ),
+      productId: PRODUCT_ID_PARAM.optional().describe('Default productId to seed.'),
     },
     READ_ONLY_TOOL,
     async (args) => {
-      const productId = args.productId ?? "com.example.premium_monthly";
-      const snippet = renderSetupSnippet(
-        args.framework,
-        PUBLISHABLE_KEY_PLACEHOLDER,
-        productId,
-      );
+      const productId = args.productId ?? 'com.example.premium_monthly';
+      const snippet = renderSetupSnippet(args.framework, PUBLISHABLE_KEY_PLACEHOLDER, productId);
       return ok({
         framework: args.framework,
         snippet,
-        note: "Insert an openiap-kit_pk_ publishable key in the IAPKIT_PUBLISHABLE_KEY placeholder. Never put the MCP openiap-kit_sk_ secret key in an app.",
+        note: 'Insert an openiap-kit_pk_ publishable key in the IAPKIT_PUBLISHABLE_KEY placeholder. Never put the MCP openiap-kit_sk_ secret key in an app.',
       });
     },
   );
@@ -279,8 +254,8 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "check_status",
-    "Return whether a userId currently has an active subscription, plus the latest subscription record.",
+    'check_status',
+    'Return whether a userId currently has an active subscription, plus the latest subscription record.',
     {
       userId: USER_ID_PARAM,
       apiKey: OPTIONAL_API_KEY,
@@ -301,11 +276,11 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "troubleshoot",
-    "Run a fast diagnostic against the configured kit deployment: health probe, sample status query, sample entitlement query.",
+    'troubleshoot',
+    'Run a fast diagnostic against the configured kit deployment: health probe, sample status query, sample entitlement query.',
     {
       sampleUserId: USER_ID_PARAM.optional().describe(
-        "If provided, runs status + entitlements for this id.",
+        'If provided, runs status + entitlements for this id.',
       ),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
@@ -315,12 +290,8 @@ function registerIapKitTools(server: McpServer) {
       try {
         const client = withClient(args, extra);
         const [health, metrics] = await Promise.all([
-          client
-            .health()
-            .catch((e) => ({ error: stringifyError(e, client.apiKey) })),
-          client
-            .metrics()
-            .catch((e) => ({ error: stringifyError(e, client.apiKey) })),
+          client.health().catch((e) => ({ error: stringifyError(e, client.apiKey) })),
+          client.metrics().catch((e) => ({ error: stringifyError(e, client.apiKey) })),
         ]);
         // The tool description promises status + entitlement checks. Run
         // both in parallel when a sampleUserId is supplied so diagnostics
@@ -349,20 +320,18 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "create_product",
+    'create_product',
     "Add or update a product in IAPKit's local catalog. Note: this creates the IAPKit-side row only — use `iapkit_sync_products` with direction=push or both after store credentials are configured to enqueue App Store Connect / Play Console sync.",
     {
       productId: PRODUCT_ID_PARAM,
-      platform: z.enum(["IOS", "Android"]),
-      type: z.enum(["Subscription", "NonConsumable", "Consumable"]),
+      platform: z.enum(['IOS', 'Android']),
+      type: z.enum(['Subscription', 'NonConsumable', 'Consumable']),
       title: TITLE_PARAM,
       description: z.string().optional(),
       localizations: z
         .array(
           z.object({
-            locale: z
-              .string()
-              .describe('BCP-47 code, e.g. "ko-KR" or "ja-JP".'),
+            locale: z.string().describe('BCP-47 code, e.g. "ko-KR" or "ja-JP".'),
             title: z.string(),
             description: z.string().optional(),
           }),
@@ -372,21 +341,19 @@ function registerIapKitTools(server: McpServer) {
           "Store-listing text in other languages. `title` / `description` are the base listing (en-US for a new product; a product pulled from a store preserves that store's base locale). These add locales on top. Do not repeat the product's base locale. Regional pricing is converted automatically and is not configured here.",
         ),
       regions: z
-        .union([z.literal("all"), z.array(z.string())])
+        .union([z.literal('all'), z.array(z.string())])
         .optional()
         .describe(
           'Android one-time products only — rejected for iOS and for subscriptions. A list of two-letter ISO 3166-1 codes, e.g. ["US","KR","JP"], restricts the product to those markets and keeps it out of regions Play adds later. "all" explicitly expands to every region Play prices and follows Play into new markets. On create, omission uses the safe default: every priced region. On update, omission preserves the stored choice. Send [] to clear a stored choice back to inherit; an existing Play product then keeps its current live footprint, while a product Play has never seen is created everywhere.',
         ),
       priceAmountMicros: PRICE_AMOUNT_MICROS_PARAM.optional(),
       currency: z.string().optional(),
-      billingPeriod: z
-        .enum(["P1W", "P1M", "P2M", "P3M", "P6M", "P1Y"])
-        .optional(),
+      billingPeriod: z.enum(['P1W', 'P1M', 'P2M', 'P3M', 'P6M', 'P1Y']).optional(),
       subscriptionGroupName: z
         .string()
         .optional()
         .describe(
-          "Required for iOS Subscription products. Reuse the same group name for related tiers.",
+          'Required for iOS Subscription products. Reuse the same group name for related tiers.',
         ),
       reviewNote: z.string().optional(),
       apiKey: OPTIONAL_API_KEY,
@@ -396,14 +363,12 @@ function registerIapKitTools(server: McpServer) {
     async (args, extra) => {
       try {
         if (
-          args.platform === "IOS" &&
-          args.type === "Subscription" &&
+          args.platform === 'IOS' &&
+          args.type === 'Subscription' &&
           !args.subscriptionGroupName?.trim()
         ) {
           return err(
-            new Error(
-              "subscriptionGroupName is required for iOS Subscription products",
-            ),
+            new Error('subscriptionGroupName is required for iOS Subscription products'),
             resolveApiKey(args, extra),
           );
         }
@@ -434,14 +399,14 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "list_products",
+    'list_products',
     "List one page of the project's product catalog stored in IAPKit. Use nextCursor until hasMore is false.",
     {
-      platform: z.enum(["IOS", "Android"]).optional(),
+      platform: z.enum(['IOS', 'Android']).optional(),
       limit: z.number().int().min(1).max(MAX_PRODUCT_PAGE_SIZE).optional(),
-      cursor: kitTextParam("cursor", MAX_PRODUCT_CURSOR_LENGTH)
+      cursor: kitTextParam('cursor', MAX_PRODUCT_CURSOR_LENGTH)
         .optional()
-        .describe("Opaque nextCursor returned by the previous page."),
+        .describe('Opaque nextCursor returned by the previous page.'),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
     },
@@ -466,19 +431,19 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "view_subscribers",
-    "List subscription rows for the project. Filter by state / productId / userId.",
+    'view_subscribers',
+    'List subscription rows for the project. Filter by state / productId / userId.',
     {
       state: z
         .enum([
-          "Active",
-          "InGracePeriod",
-          "InBillingRetry",
-          "Expired",
-          "Revoked",
-          "Refunded",
-          "Paused",
-          "Unknown",
+          'Active',
+          'InGracePeriod',
+          'InBillingRetry',
+          'Expired',
+          'Revoked',
+          'Refunded',
+          'Paused',
+          'Unknown',
         ])
         .optional(),
       productId: PRODUCT_ID_PARAM.optional(),
@@ -509,11 +474,11 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "simulate_purchase",
-    "Print step-by-step instructions for triggering a sandbox purchase on Apple StoreKit Configuration / Google Play License Tester. Does not call live APIs — sandbox purchases must be initiated from the device itself.",
+    'simulate_purchase',
+    'Print step-by-step instructions for triggering a sandbox purchase on Apple StoreKit Configuration / Google Play License Tester. Does not call live APIs — sandbox purchases must be initiated from the device itself.',
     {
       productId: PRODUCT_ID_PARAM,
-      platform: z.enum(["IOS", "Android"]),
+      platform: z.enum(['IOS', 'Android']),
     },
     READ_ONLY_TOOL,
     async (args) => ok({ steps: simulatePurchaseSteps(args) }),
@@ -524,33 +489,33 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "simulate_webhook",
+    'simulate_webhook',
     "POST a synthetic test notification to kit's webhook endpoint with a separate publishable key. Android simulation is for local/dev deployments with KIT_ALLOW_UNAUTHENTICATED_PUBSUB=1; production Google RTDN requires Pub/Sub OIDC.",
     {
-      platform: z.enum(["IOS", "Android"]),
+      platform: z.enum(['IOS', 'Android']),
       publishableKey: API_KEY_PARAM.optional().describe(
-        "IAPKit publishable project key for the lifecycle webhook URL. Required for Android simulation; the MCP secret is never used automatically.",
+        'IAPKit publishable project key for the lifecycle webhook URL. Required for Android simulation; the MCP secret is never used automatically.',
       ),
       apiKey: API_KEY_PARAM.optional().describe(
-        "Deprecated alias for publishableKey. Must be a publishable project key.",
+        'Deprecated alias for publishableKey. Must be a publishable project key.',
       ),
       baseUrl: OPTIONAL_BASE_URL,
     },
     WRITE_TOOL,
     async (args) => {
-      if (args.platform === "Android") {
+      if (args.platform === 'Android') {
         const publishableKey = args.publishableKey ?? args.apiKey;
         if (!publishableKey) {
           return err(
             new Error(
-              "publishableKey is required. The MCP secret is intentionally not reused for lifecycle webhook URLs.",
+              'publishableKey is required. The MCP secret is intentionally not reused for lifecycle webhook URLs.',
             ),
           );
         }
-        if (publishableKey.startsWith("openiap-kit_sk_")) {
+        if (publishableKey.startsWith('openiap-kit_sk_')) {
           return err(
             new Error(
-              "publishableKey must not be an openiap-kit_sk_ secret. Create or select an openiap-kit_pk_ key for the lifecycle webhook URL.",
+              'publishableKey must not be an openiap-kit_sk_ secret. Create or select an openiap-kit_pk_ key for the lifecycle webhook URL.',
             ),
             publishableKey,
           );
@@ -561,17 +526,15 @@ function registerIapKitTools(server: McpServer) {
         }
         let baseUrl: string;
         try {
-          baseUrl = normalizeKitBaseUrl(
-            args.baseUrl ?? process.env.IAPKIT_BASE_URL,
-          );
+          baseUrl = normalizeKitBaseUrl(args.baseUrl ?? process.env.IAPKIT_BASE_URL);
         } catch (error) {
           return err(error, publishableKey);
         }
         const message = {
-          version: "1.0",
-          packageName: "com.example.app",
+          version: '1.0',
+          packageName: 'com.example.app',
           eventTimeMillis: Date.now(),
-          testNotification: { version: "1.0" },
+          testNotification: { version: '1.0' },
         };
         const data = base64EncodeUtf8(JSON.stringify(message));
         const body = {
@@ -580,14 +543,14 @@ function registerIapKitTools(server: McpServer) {
             messageId: `test-${Date.now()}`,
             publishTime: new Date().toISOString(),
           },
-          subscription: "projects/local/subscriptions/openiap-test",
+          subscription: 'projects/local/subscriptions/openiap-test',
         };
         try {
           const response = await fetch(
             `${baseUrl}/v1/webhooks/${encodeURIComponent(publishableKey)}`,
             {
-              method: "POST",
-              headers: { "content-type": "application/json" },
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
               body: JSON.stringify(body),
             },
           );
@@ -608,7 +571,7 @@ function registerIapKitTools(server: McpServer) {
         }
       }
       return ok({
-        info: "Apple ASN v2 simulation requires a real signed payload from App Store Connect Sandbox. Use App Store Connect → App Store Server Notifications → Send Test Notification, configured to POST to /v1/webhooks/{publishableKey}.",
+        info: 'Apple ASN v2 simulation requires a real signed payload from App Store Connect Sandbox. Use App Store Connect → App Store Server Notifications → Send Test Notification, configured to POST to /v1/webhooks/{publishableKey}.',
       });
     },
   );
@@ -618,8 +581,8 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "inspect_state",
-    "Return a dashboard-style summary: metrics, product catalog, configured webhooks endpoint URLs.",
+    'inspect_state',
+    'Return a dashboard-style summary: metrics, product catalog, configured webhooks endpoint URLs.',
     {
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
@@ -632,12 +595,8 @@ function registerIapKitTools(server: McpServer) {
           args.baseUrl ?? process.env.IAPKIT_PUBLIC_BASE_URL,
         );
         const [metrics, products] = await Promise.all([
-          client
-            .metrics()
-            .catch((e) => ({ error: stringifyError(e, client.apiKey) })),
-          client
-            .listProducts()
-            .catch((e) => ({ error: stringifyError(e, client.apiKey) })),
+          client.metrics().catch((e) => ({ error: stringifyError(e, client.apiKey) })),
+          client.listProducts().catch((e) => ({ error: stringifyError(e, client.apiKey) })),
         ]);
         return ok({
           metrics,
@@ -645,7 +604,7 @@ function registerIapKitTools(server: McpServer) {
           webhookUrls: {
             lifecycle: `${publicBaseUrl}/v1/webhooks/${PUBLISHABLE_KEY_PLACEHOLDER}`,
           },
-          note: "Use webhookUrls.lifecycle for inbound Apple ASN v2 and Google Pub/Sub RTDN delivery. IAPKit does not expose an outbound webhook stream.",
+          note: 'Use webhookUrls.lifecycle for inbound Apple ASN v2 and Google Pub/Sub RTDN delivery. IAPKit does not expose an outbound webhook stream.',
         });
       } catch (error) {
         return err(error, resolveApiKey(args, extra));
@@ -658,23 +617,21 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "revenue_analytics",
+    'revenue_analytics',
     "Summarize IAPKit subscription purchase and revenue analytics for a date range. Defaults to the current UTC month so Codex can answer questions like 'how many purchases happened this month?'.",
     {
       period: z
-        .enum(["this_month", "last_30_days", "last_90_days", "custom"])
+        .enum(['this_month', 'last_30_days', 'last_90_days', 'custom'])
         .optional()
         .describe(
-          "Date window to summarize. Use custom with fromDay and toDay for an explicit range.",
+          'Date window to summarize. Use custom with fromDay and toDay for an explicit range.',
         ),
       fromDay: ISO_DAY_PARAM.optional().describe(
-        "Inclusive UTC day for custom ranges, YYYY-MM-DD.",
+        'Inclusive UTC day for custom ranges, YYYY-MM-DD.',
       ),
-      toDay: ISO_DAY_PARAM.optional().describe(
-        "Inclusive UTC day for custom ranges, YYYY-MM-DD.",
-      ),
+      toDay: ISO_DAY_PARAM.optional().describe('Inclusive UTC day for custom ranges, YYYY-MM-DD.'),
       productId: PRODUCT_ID_PARAM.optional(),
-      platform: z.enum(["IOS", "Android"]).optional(),
+      platform: z.enum(['IOS', 'Android']).optional(),
       currency: z.string().optional(),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
@@ -703,12 +660,12 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "manage_product",
+    'manage_product',
     "Update or remove a product in IAPKit's catalog. `action: 'remove'` marks the row Removed; the next product sync push/both deletes the upstream store product when the platform allows it.",
     {
       productId: PRODUCT_ID_PARAM,
-      platform: z.enum(["IOS", "Android"]),
-      action: z.enum(["disable", "enable", "remove"]),
+      platform: z.enum(['IOS', 'Android']),
+      action: z.enum(['disable', 'enable', 'remove']),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
     },
@@ -723,9 +680,9 @@ function registerIapKitTools(server: McpServer) {
         // the existing row's product type and (depending on
         // upsertProduct's branch) its title.
         const stateMap = {
-          disable: "Removed" as const,
-          enable: "Active" as const,
-          remove: "Removed" as const,
+          disable: 'Removed' as const,
+          enable: 'Active' as const,
+          remove: 'Removed' as const,
         };
         const action = args.action as keyof typeof stateMap;
         const next = await client.setProductState({
@@ -745,11 +702,11 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "get_client_payload",
+    'get_client_payload',
     "Read a product's public client payload and durable expectedVersion. Requires a secret admin key and returns the revision even after deletion.",
     {
       productId: PRODUCT_ID_PARAM,
-      platform: z.enum(["IOS", "Android"]),
+      platform: z.enum(['IOS', 'Android']),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
     },
@@ -773,21 +730,21 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "set_client_payload",
+    'set_client_payload',
     "Create or update a product's public app-readable TOML, JSON, or text payload. Requires a secret admin key; publishable mobile keys are rejected.",
     {
       productId: PRODUCT_ID_PARAM,
-      platform: z.enum(["IOS", "Android"]),
+      platform: z.enum(['IOS', 'Android']),
       // Opaque: IAPKit owns this value space, so a stale enum here would
       // reject a format the server already accepts.
-      format: kitTextParam("format").describe(
-        "Payload format, currently toml, json, or text. Forwarded as-is for IAPKit to validate.",
+      format: kitTextParam('format').describe(
+        'Payload format, currently toml, json, or text. Forwarded as-is for IAPKit to validate.',
       ),
       body: z
         .string()
         .max(MAX_CLIENT_PAYLOAD_BYTES)
         .describe(
-          "Public app-readable payload body. The server enforces a 16 KiB UTF-8 limit and validates TOML/JSON.",
+          'Public app-readable payload body. The server enforces a 16 KiB UTF-8 limit and validates TOML/JSON.',
         ),
       expectedVersion: z.number().int().nonnegative().optional(),
       apiKey: OPTIONAL_API_KEY,
@@ -816,11 +773,11 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "remove_client_payload",
+    'remove_client_payload',
     "Remove a product's public client payload while retaining its monotonic revision history. Requires a secret admin key.",
     {
       productId: PRODUCT_ID_PARAM,
-      platform: z.enum(["IOS", "Android"]),
+      platform: z.enum(['IOS', 'Android']),
       expectedVersion: z.number().int().nonnegative().optional(),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
@@ -846,12 +803,12 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "sync_products",
-    "Enqueue an IAPKit product sync job for App Store Connect or Google Play. Use dryRun=true first to inspect what Codex would change; set dryRun=false only when the user explicitly asks to apply the store sync.",
+    'sync_products',
+    'Enqueue an IAPKit product sync job for App Store Connect or Google Play. Use dryRun=true first to inspect what Codex would change; set dryRun=false only when the user explicitly asks to apply the store sync.',
     {
-      platform: z.enum(["IOS", "Android"]),
+      platform: z.enum(['IOS', 'Android']),
       direction: z
-        .enum(["pull", "push", "both", "purge-local"])
+        .enum(['pull', 'push', 'both', 'purge-local'])
         .optional()
         .describe(
           "pull imports from the store, push writes IAPKit catalog rows to the store (including eligible Removed-row deletes), both does both, purge-local deletes kit's local catalog cache only.",
@@ -859,7 +816,7 @@ function registerIapKitTools(server: McpServer) {
       dryRun: z
         .boolean()
         .optional()
-        .describe("Defaults to true so Codex previews store changes first."),
+        .describe('Defaults to true so Codex previews store changes first.'),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
     },
@@ -869,7 +826,7 @@ function registerIapKitTools(server: McpServer) {
         return ok(
           await withClient(args, extra).syncProducts({
             platform: args.platform,
-            direction: args.direction ?? "both",
+            direction: args.direction ?? 'both',
             dryRun: args.dryRun ?? true,
           }),
         );
@@ -884,10 +841,10 @@ function registerIapKitTools(server: McpServer) {
   // ---------------------------------------------------------------------------
   registerTool(
     server,
-    "sync_status",
-    "Return the current state and log summary for a previously enqueued IAPKit product sync job.",
+    'sync_status',
+    'Return the current state and log summary for a previously enqueued IAPKit product sync job.',
     {
-      jobId: kitTextParam("jobId", MAX_KIT_ID_LENGTH),
+      jobId: kitTextParam('jobId', MAX_KIT_ID_LENGTH),
       apiKey: OPTIONAL_API_KEY,
       baseUrl: OPTIONAL_BASE_URL,
     },
@@ -902,22 +859,18 @@ function registerIapKitTools(server: McpServer) {
   );
 }
 
-function renderSetupSnippet(
-  framework: SetupFramework,
-  apiKey: string,
-  productId: string,
-): string {
+function renderSetupSnippet(framework: SetupFramework, apiKey: string, productId: string): string {
   const apiKeyLiteral = codeStringLiteral(apiKey);
   const productIdLiteral = codeStringLiteral(productId);
 
   switch (framework) {
-    case "expo":
-    case "react-native":
+    case 'expo':
+    case 'react-native':
       return `import { Platform } from 'react-native';
 import {
   verifyPurchaseWithProvider,
   type Purchase,
-} from '${framework === "expo" ? "expo-iap" : "react-native-iap"}';
+} from '${framework === 'expo' ? 'expo-iap' : 'react-native-iap'}';
 
 const iapkitPublishableKey = ${apiKeyLiteral};
 const expectedProductId = ${productIdLiteral};
@@ -950,7 +903,7 @@ export async function verifyAndGrant(purchase: Purchase) {
     if (verified.clientPayload) applyPublicRules(verified.clientPayload);
   }
 }`;
-    case "flutter":
+    case 'flutter':
       return `import 'dart:io';
 import 'package:flutter_inapp_purchase/flutter_inapp_purchase.dart';
 
@@ -991,7 +944,7 @@ Future<void> verifyAndGrant(Purchase purchase) async {
     }
   }
 }`;
-    case "kmp":
+    case 'kmp':
       return `import io.github.hyochan.kmpiap.*
 
 suspend fun verifyAndGrant(purchase: Purchase, isIos: Boolean) {
@@ -1029,7 +982,7 @@ suspend fun verifyAndGrant(purchase: Purchase, isIos: Boolean) {
         verified?.clientPayload?.let(::applyPublicRules)
     }
 }`;
-    case "godot":
+    case 'godot':
       return `const Types = preload("res://addons/godot-iap/types.gd")
 
 func verify_and_grant(purchase: Variant) -> void:
@@ -1068,7 +1021,7 @@ func verify_and_grant(purchase: Variant) -> void:
         grant_entitlement(verified.product_id)
         if verified.client_payload != null:
             apply_public_rules(verified.client_payload)`;
-    case "ios":
+    case 'ios':
       return `import OpenIAP
 
 let iapkitApiKey = ${apiKeyLiteral}
@@ -1101,7 +1054,7 @@ if let purchase = try await iapStore.requestPurchase(sku: productId, type: .inAp
         }
     }
 }`;
-    case "android":
+    case 'android':
       return `import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -1190,7 +1143,7 @@ function codeStringLiteral(value: string): string {
 
 function base64EncodeUtf8(value: string): string {
   const bytes = new TextEncoder().encode(value);
-  let binary = "";
+  let binary = '';
   for (const byte of bytes) {
     binary += String.fromCharCode(byte);
   }
@@ -1202,7 +1155,7 @@ type RevenueMetricsResponse = {
     day: string;
     currency: string;
     productId: string;
-    platform: "IOS" | "Android";
+    platform: 'IOS' | 'Android';
     activeSubs: number;
     newSubs: number;
     renewals: number;
@@ -1212,45 +1165,39 @@ type RevenueMetricsResponse = {
   }>;
   currencies: string[];
   productIds: string[];
-  platforms: Array<"IOS" | "Android">;
+  platforms: Array<'IOS' | 'Android'>;
   truncated: boolean;
 };
 
 function resolveRevenueRange(args: {
-  period?: "this_month" | "last_30_days" | "last_90_days" | "custom";
+  period?: 'this_month' | 'last_30_days' | 'last_90_days' | 'custom';
   fromDay?: string;
   toDay?: string;
 }): { fromDay: string; toDay: string; period: string } {
-  const period = args.period ?? "this_month";
-  if (period === "custom") {
+  const period = args.period ?? 'this_month';
+  if (period === 'custom') {
     if (!args.fromDay || !args.toDay) {
-      throw new Error("fromDay and toDay are required when period is custom");
+      throw new Error('fromDay and toDay are required when period is custom');
     }
     if (args.fromDay > args.toDay) {
-      throw new Error("fromDay must be on or before toDay");
+      throw new Error('fromDay must be on or before toDay');
     }
     return { fromDay: args.fromDay, toDay: args.toDay, period };
   }
 
   const now = new Date();
-  const today = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
-  if (period === "this_month") {
+  if (period === 'this_month') {
     return {
-      fromDay: formatUtcDay(
-        new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)),
-      ),
+      fromDay: formatUtcDay(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))),
       toDay: formatUtcDay(today),
       period,
     };
   }
 
   return {
-    fromDay: formatUtcDay(
-      addUtcDays(today, period === "last_30_days" ? -29 : -89),
-    ),
+    fromDay: formatUtcDay(addUtcDays(today, period === 'last_30_days' ? -29 : -89)),
     toDay: formatUtcDay(today),
     period,
   };
@@ -1273,7 +1220,7 @@ function summarizeRevenueMetrics(
     toDay: string;
     period: string;
     productId?: string;
-    platform?: "IOS" | "Android";
+    platform?: 'IOS' | 'Android';
     currency?: string;
   },
 ) {
@@ -1300,7 +1247,7 @@ function summarizeRevenueMetrics(
     { purchaseEvents: number; revenueMicrosByCurrency: Record<string, number> }
   >();
   const totalsByPlatform = new Map<
-    "IOS" | "Android",
+    'IOS' | 'Android',
     { purchaseEvents: number; revenueMicrosByCurrency: Record<string, number> }
   >();
 
@@ -1328,8 +1275,7 @@ function summarizeRevenueMetrics(
     };
     productTotal.purchaseEvents += purchaseEvents;
     productTotal.revenueMicrosByCurrency[row.currency] =
-      (productTotal.revenueMicrosByCurrency[row.currency] ?? 0) +
-      row.revenueMicros;
+      (productTotal.revenueMicrosByCurrency[row.currency] ?? 0) + row.revenueMicros;
     totalsByProduct.set(row.productId, productTotal);
 
     const platformTotal = totalsByPlatform.get(row.platform) ?? {
@@ -1338,8 +1284,7 @@ function summarizeRevenueMetrics(
     };
     platformTotal.purchaseEvents += purchaseEvents;
     platformTotal.revenueMicrosByCurrency[row.currency] =
-      (platformTotal.revenueMicrosByCurrency[row.currency] ?? 0) +
-      row.revenueMicros;
+      (platformTotal.revenueMicrosByCurrency[row.currency] ?? 0) + row.revenueMicros;
     totalsByPlatform.set(row.platform, platformTotal);
   }
 
@@ -1355,27 +1300,24 @@ function summarizeRevenueMetrics(
       platforms: metrics.platforms,
     },
     truncated: metrics.truncated,
-    note: "purchaseEvents counts subscription starts plus renewals in IAPKit revenue rollups. Refunds and cancellations are reported separately.",
+    note: 'purchaseEvents counts subscription starts plus renewals in IAPKit revenue rollups. Refunds and cancellations are reported separately.',
   };
 }
 
-function simulatePurchaseSteps(args: {
-  productId: string;
-  platform: "IOS" | "Android";
-}): string[] {
-  if (args.platform === "IOS") {
+function simulatePurchaseSteps(args: { productId: string; platform: 'IOS' | 'Android' }): string[] {
+  if (args.platform === 'IOS') {
     return [
       "Open the host app's Xcode scheme.",
-      "Set Run > Options > StoreKit Configuration to a .storekit file containing the product.",
+      'Set Run > Options > StoreKit Configuration to a .storekit file containing the product.',
       `Run on Simulator and trigger the in-app purchase for ${args.productId}.`,
       "On purchase complete, kit's verifyReceipt route ingests the JWS; the matching ASN v2 TEST notification can be triggered from App Store Connect → App Store Server Notifications → Send Test Notification.",
     ];
   }
   return [
-    "Open Google Play Console → Setup → License testing.",
-    "Add your tester Google account.",
+    'Open Google Play Console → Setup → License testing.',
+    'Add your tester Google account.',
     `Sideload the host app and trigger the in-app purchase for ${args.productId} signed-in as the tester.`,
-    "Pub/Sub will deliver an RTDN to /v1/webhooks/{apiKey} once the configured topic + subscription are wired.",
+    'Pub/Sub will deliver an RTDN to /v1/webhooks/{apiKey} once the configured topic + subscription are wired.',
   ];
 }
 
