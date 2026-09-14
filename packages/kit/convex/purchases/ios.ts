@@ -13,6 +13,7 @@ import { v } from "convex/values";
 
 import { action, ActionCtx } from "../_generated/server";
 import { internal } from "../_generated/api";
+import { resolveAppleCredentialIds } from "../projects/storeCredentials";
 import { Doc, Id } from "../_generated/dataModel";
 import { loadAppleRootCertificates } from "../certificates/apple_root_certificates";
 import {
@@ -302,11 +303,19 @@ export async function getAppStoreServerCredentials(
 ): Promise<AppStoreServerCredentials> {
   const missingFields: AppStoreServerCredentialField[] = [];
 
-  if (!project.iosAppStoreIssuerId) {
+  // Apple issues these per developer account, so a project with blank
+  // columns inherits the organization default.
+  const organizationDefaults = await ctx.runQuery(
+    internal.projects.storeCredentials.getOrganizationStoreDefaults,
+    { organizationId: project.organizationId },
+  );
+  const resolved = resolveAppleCredentialIds(project, organizationDefaults);
+
+  if (!resolved.issuerId) {
     missingFields.push("issuerId");
   }
 
-  if (!project.iosAppStoreKeyId) {
+  if (!resolved.keyId) {
     missingFields.push("keyId");
   }
 
@@ -339,8 +348,8 @@ export async function getAppStoreServerCredentials(
   }
 
   return {
-    issuerId: project.iosAppStoreIssuerId!,
-    keyId: project.iosAppStoreKeyId!,
+    issuerId: resolved.issuerId!,
+    keyId: resolved.keyId!,
     privateKey,
   };
 }

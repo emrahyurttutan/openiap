@@ -85,3 +85,47 @@ describe("pickCredentialFile", () => {
     expect(pickCredentialFile([otherFile, orgFile], undefined)).toBe(orgFile);
   });
 });
+
+describe("resolved ids drive the ASC pair rule", () => {
+  // Mirrors the pair-resolution rule in convex/products/asc.ts, locked here
+  // so inheritance cannot change which key signs an ASC request.
+  function ascPair(resolved: ReturnType<typeof resolveAppleCredentialIds>) {
+    const useAsc = !!resolved.ascKeyId;
+    return {
+      issuerId: useAsc
+        ? (resolved.ascIssuerId ?? resolved.issuerId)
+        : resolved.issuerId,
+      keyId: useAsc ? resolved.ascKeyId : resolved.keyId,
+    };
+  }
+
+  it("signs with the inherited ASC key and the inherited shared issuer", () => {
+    const resolved = resolveAppleCredentialIds({}, ORG_DEFAULTS);
+    expect(ascPair(resolved)).toEqual({
+      issuerId: "11111111-1111-1111-1111-111111111111",
+      keyId: "ORGASC1234",
+    });
+  });
+
+  it("falls back to the server api pair when no ASC key resolves", () => {
+    const resolved = resolveAppleCredentialIds(
+      {},
+      { ...ORG_DEFAULTS, defaultIosAscKeyId: null },
+    );
+    expect(ascPair(resolved)).toEqual({
+      issuerId: "11111111-1111-1111-1111-111111111111",
+      keyId: "ORGKEY1234",
+    });
+  });
+
+  it("lets a project override only its own ASC key", () => {
+    const resolved = resolveAppleCredentialIds(
+      { iosAscKeyId: "PRJASC1234" },
+      ORG_DEFAULTS,
+    );
+    expect(ascPair(resolved)).toEqual({
+      issuerId: "11111111-1111-1111-1111-111111111111",
+      keyId: "PRJASC1234",
+    });
+  });
+});

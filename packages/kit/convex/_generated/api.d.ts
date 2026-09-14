@@ -47,6 +47,8 @@ import type * as projects_internal from "../projects/internal.js";
 import type * as projects_mutation from "../projects/mutation.js";
 import type * as projects_query from "../projects/query.js";
 import type * as projects_setupStatus from "../projects/setupStatus.js";
+import type * as projects_storeCredentialValidation from "../projects/storeCredentialValidation.js";
+import type * as projects_storeCredentials from "../projects/storeCredentials.js";
 import type * as projects_writable from "../projects/writable.js";
 import type * as purchases_action from "../purchases/action.js";
 import type * as purchases_amazon from "../purchases/amazon.js";
@@ -132,6 +134,8 @@ declare const fullApi: ApiFromModules<{
   "projects/mutation": typeof projects_mutation;
   "projects/query": typeof projects_query;
   "projects/setupStatus": typeof projects_setupStatus;
+  "projects/storeCredentialValidation": typeof projects_storeCredentialValidation;
+  "projects/storeCredentials": typeof projects_storeCredentials;
   "projects/writable": typeof projects_writable;
   "purchases/action": typeof purchases_action;
   "purchases/amazon": typeof purchases_amazon;

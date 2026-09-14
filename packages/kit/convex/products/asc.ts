@@ -4,6 +4,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 
 import { action, internalAction, type ActionCtx } from "../_generated/server";
 import { internal } from "../_generated/api";
+import { resolveAppleCredentialIds } from "../projects/storeCredentials";
 import type { Doc, Id } from "../_generated/dataModel";
 import { getProjectByApiKey } from "../purchases/shared";
 import { mapWithConcurrency } from "../utils/concurrency";
@@ -216,11 +217,18 @@ async function resolveAscCredentials(
   // signed with the ASC private key, and Apple rejected every
   // request with a 401 across all production deployments
   // (LukasB-DEV's report on PR #127).
-  const useAsc = !!project.iosAscKeyId;
+  // Each id resolves from the project when set and the organization
+  // default otherwise; the pair rule above then applies unchanged.
+  const organizationDefaults = await ctx.runQuery(
+    internal.projects.storeCredentials.getOrganizationStoreDefaults,
+    { organizationId: project.organizationId },
+  );
+  const resolved = resolveAppleCredentialIds(project, organizationDefaults);
+  const useAsc = !!resolved.ascKeyId;
   const issuerId = useAsc
-    ? (project.iosAscIssuerId ?? project.iosAppStoreIssuerId)
-    : project.iosAppStoreIssuerId;
-  const keyId = useAsc ? project.iosAscKeyId : project.iosAppStoreKeyId;
+    ? (resolved.ascIssuerId ?? resolved.issuerId)
+    : resolved.issuerId;
+  const keyId = useAsc ? resolved.ascKeyId : resolved.keyId;
   if (!keyId) {
     const missing = [useAsc ? "iosAscKeyId" : "iosAppStoreKeyId"];
     throw new Error(
