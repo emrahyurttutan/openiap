@@ -56,6 +56,8 @@ export async function uploadCredentialFile(options: {
   file: File;
   purpose: CredentialPurpose;
   description: string;
+  // Callers with their own failure copy pass a translator that throws.
+  ensureSaved?: (result: SaveFileResult) => void;
 }): Promise<void> {
   const { uploadUrl, uploadReservationId } = await options.generateUploadUrl({
     organizationId: options.organizationId,
@@ -88,6 +90,11 @@ export async function uploadCredentialFile(options: {
     description: options.description,
     isInternal: true,
   });
+
+  if (options.ensureSaved) {
+    options.ensureSaved(saved);
+    return;
+  }
 
   if (!saved.success) {
     throw new Error(

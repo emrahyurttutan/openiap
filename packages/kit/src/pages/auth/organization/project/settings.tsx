@@ -15,11 +15,16 @@ import {
   HelpCircle,
   Download,
   CircleDollarSign,
+  Building2,
 } from "lucide-react";
 import { GuideModal } from "../../../../components/GuideModal";
 import { PageLoading } from "@/components/LoadingSpinner";
 import { ButtonPrimary } from "@/components/ButtonPrimary";
 import { DEFAULT_REPORTING_CURRENCY, currencyCodePattern } from "@/lib/utils";
+import {
+  assertCredentialExtension,
+  uploadCredentialFile,
+} from "../storeCredentialUpload";
 
 const androidPackagePattern =
   /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
@@ -121,7 +126,7 @@ const FILE_SAVE_TARGET_PENDING_MESSAGE =
 const FILE_SAVE_AUTHORIZATION_LOST_MESSAGE =
   "The file was not saved because your access changed during the upload. Please sign in and try again.";
 const FILE_SAVE_INSUFFICIENT_PERMISSIONS_MESSAGE =
-  "Only an organization admin or owner can configure the App Review screenshot.";
+  "Only an organization admin or owner can change this file.";
 const FILE_SAVE_RESERVATION_EXPIRED_MESSAGE =
   "The upload took too long to finish. Please select the file and try again.";
 const FILE_SAVE_ALREADY_REGISTERED_MESSAGE =
@@ -267,6 +272,9 @@ export default function ProjectSettings() {
   const generateUploadUrl = useMutation(api.files.mutation.generateUploadUrl);
   const saveFile = useMutation(api.files.mutation.saveFile);
   const removeFile = useMutation(api.files.mutation.remove);
+  const promoteFile = useMutation(
+    api.files.mutation.promoteFileToOrganizationDefault,
+  );
   const downloadFile = useAction(api.files.action.downloadFile);
   const validateAppleReviewScreenshotUpload = useAction(
     api.files.action.validateAppleReviewScreenshotUpload,
@@ -276,6 +284,19 @@ export default function ProjectSettings() {
   // admin needs the original .p8 / service-account JSON back —
   // for rotating across projects, copying to a backup, or just
   // double-checking what kit holds matches the upstream console.
+  const handlePromoteFile = async (fileId: Id<"files">) => {
+    try {
+      await promoteFile({ fileId });
+      toast.success("Credential is now the organization default");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to promote the credential",
+      );
+    }
+  };
+
   const handleFileDownload = async (fileId: Id<"files">, label: string) => {
     try {
       const result = await downloadFile({ fileId });
@@ -373,6 +394,21 @@ export default function ProjectSettings() {
     api.files.query.list,
     project ? { organizationId: project.organizationId } : "skip",
   );
+
+  const organizationDefaults = useQuery(
+    api.organizations.query.getStoreDefaults,
+    project ? { organizationId: project.organizationId } : "skip",
+  );
+
+  // A blank input means "inherit", so name what it will inherit rather than
+  // leaving the field looking unconfigured.
+  const inheritedHint = (
+    current: string,
+    inherited: string | null | undefined,
+  ) =>
+    !current.trim() && inherited
+      ? `Inherited from organization defaults: ${inherited}`
+      : null;
 
   // Get existing files
   const iosFile = files?.find(
@@ -741,47 +777,19 @@ export default function ProjectSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file extension
-    if (!file.name.endsWith(".p8")) {
-      toast.error("Please upload a valid .p8 file");
-      return;
-    }
-
     setUploadingIos(true);
     try {
-      // Step 1: Generate upload URL
-      const { uploadUrl, uploadReservationId } = await generateUploadUrl({
+      assertCredentialExtension(file, "apple_p8_key");
+      await uploadCredentialFile({
+        generateUploadUrl,
+        saveFile,
         organizationId: project.organizationId,
         projectId: project._id,
-      });
-
-      // Step 2: Upload file to Convex storage
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type || "application/octet-stream" },
-        body: file,
-      });
-
-      if (!result.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const { storageId } = await result.json();
-
-      // Step 3: Save file record to database
-      const savedFile = await saveFile({
-        organizationId: project.organizationId,
-        projectId: project._id,
-        uploadReservationId,
-        storageId,
-        fileName: file.name,
-        fileType: file.type || "application/octet-stream",
-        fileSize: file.size,
+        file,
         purpose: "apple_p8_key",
         description: `Apple .p8 key for ${project.name}`,
-        isInternal: true,
+        ensureSaved: ensureFileSaveSucceeded,
       });
-      ensureFileSaveSucceeded(savedFile);
 
       setIosFileUploaded(true);
       toast.success("iOS authentication file uploaded successfully");
@@ -798,36 +806,19 @@ export default function ProjectSettings() {
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.name.endsWith(".p8")) {
-      toast.error("Please upload a valid .p8 file");
-      return;
-    }
     setUploadingIosAsc(true);
     try {
-      const { uploadUrl, uploadReservationId } = await generateUploadUrl({
+      assertCredentialExtension(file, "apple_p8_asc_api_key");
+      await uploadCredentialFile({
+        generateUploadUrl,
+        saveFile,
         organizationId: project.organizationId,
         projectId: project._id,
-      });
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type || "application/octet-stream" },
-        body: file,
-      });
-      if (!result.ok) throw new Error("Upload failed");
-      const { storageId } = await result.json();
-      const savedFile = await saveFile({
-        organizationId: project.organizationId,
-        projectId: project._id,
-        uploadReservationId,
-        storageId,
-        fileName: file.name,
-        fileType: file.type || "application/octet-stream",
-        fileSize: file.size,
+        file,
         purpose: "apple_p8_asc_api_key",
         description: `App Store Connect API key for ${project.name}`,
-        isInternal: true,
+        ensureSaved: ensureFileSaveSucceeded,
       });
-      ensureFileSaveSucceeded(savedFile);
       setIosAscFileUploaded(true);
       toast.success("App Store Connect API key uploaded successfully");
     } catch (error: any) {
@@ -927,47 +918,19 @@ export default function ProjectSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file extension
-    if (!file.name.endsWith(".json")) {
-      toast.error("Please upload a valid JSON file");
-      return;
-    }
-
     setUploadingAndroid(true);
     try {
-      // Step 1: Generate upload URL
-      const { uploadUrl, uploadReservationId } = await generateUploadUrl({
+      assertCredentialExtension(file, "android_service_account");
+      await uploadCredentialFile({
+        generateUploadUrl,
+        saveFile,
         organizationId: project.organizationId,
         projectId: project._id,
-      });
-
-      // Step 2: Upload file to Convex storage
-      const result = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type || "application/json" },
-        body: file,
-      });
-
-      if (!result.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const { storageId } = await result.json();
-
-      // Step 3: Save file record to database
-      const savedFile = await saveFile({
-        organizationId: project.organizationId,
-        projectId: project._id,
-        uploadReservationId,
-        storageId,
-        fileName: file.name,
-        fileType: file.type || "application/json",
-        fileSize: file.size,
+        file,
         purpose: "android_service_account",
         description: `Android service account for ${project.name}`,
-        isInternal: true,
+        ensureSaved: ensureFileSaveSucceeded,
       });
-      ensureFileSaveSucceeded(savedFile);
 
       setAndroidFileUploaded(true);
       toast.success("Android service account uploaded successfully");
@@ -1280,6 +1243,17 @@ export default function ProjectSettings() {
                       spellCheck={false}
                       aria-invalid={!isIosIssuerIdValid}
                     />
+                    {inheritedHint(
+                      iosAppStoreIssuerId,
+                      organizationDefaults?.defaultIosAppStoreIssuerId,
+                    ) && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {inheritedHint(
+                          iosAppStoreIssuerId,
+                          organizationDefaults?.defaultIosAppStoreIssuerId,
+                        )}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground mt-1">
                       {
                         "App Store Server API issuer. Find it in App Store Connect → Users and Access → Integrations → In-App Purchase (under Keys)."
@@ -1317,6 +1291,17 @@ export default function ProjectSettings() {
                       spellCheck={false}
                       aria-invalid={!isIosKeyIdValid}
                     />
+                    {inheritedHint(
+                      iosAppStoreKeyId,
+                      organizationDefaults?.defaultIosAppStoreKeyId,
+                    ) && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {inheritedHint(
+                          iosAppStoreKeyId,
+                          organizationDefaults?.defaultIosAppStoreKeyId,
+                        )}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground mt-1">
                       {
                         "Ten-character identifier shown next to the In-App Purchase .p8 key in App Store Connect."
@@ -1392,6 +1377,21 @@ export default function ProjectSettings() {
                                 title={"Download file"}
                               >
                                 <Download className="w-4 h-4" />
+                              </button>
+                            )}
+                            {iosFile && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handlePromoteFile(iosFile._id)
+                                }
+                                className="p-2 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                title={"Make this the organization default"}
+                                aria-label={
+                                  "Make this the organization default"
+                                }
+                              >
+                                <Building2 className="w-4 h-4" />
                               </button>
                             )}
                             <button
@@ -1604,6 +1604,17 @@ export default function ProjectSettings() {
                       spellCheck={false}
                       aria-invalid={!isIosAscKeyIdValid}
                     />
+                    {inheritedHint(
+                      iosAscKeyId,
+                      organizationDefaults?.defaultIosAscKeyId,
+                    ) && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {inheritedHint(
+                          iosAscKeyId,
+                          organizationDefaults?.defaultIosAscKeyId,
+                        )}
+                      </p>
+                    )}
                     {!isIosAscKeyIdValid && (
                       <p className="text-sm text-destructive mt-1">
                         {"Key ID must be 10 uppercase letters or numbers."}
@@ -1642,6 +1653,21 @@ export default function ProjectSettings() {
                                   title={"Download file"}
                                 >
                                   <Download className="w-4 h-4" />
+                                </button>
+                              )}
+                              {iosAscFile && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void handlePromoteFile(iosAscFile._id)
+                                  }
+                                  className="p-2 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                  title={"Make this the organization default"}
+                                  aria-label={
+                                    "Make this the organization default"
+                                  }
+                                >
+                                  <Building2 className="w-4 h-4" />
                                 </button>
                               )}
                               <button
@@ -1941,6 +1967,21 @@ export default function ProjectSettings() {
                                 title={"Download file"}
                               >
                                 <Download className="w-4 h-4" />
+                              </button>
+                            )}
+                            {androidFile && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handlePromoteFile(androidFile._id)
+                                }
+                                className="p-2 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                title={"Make this the organization default"}
+                                aria-label={
+                                  "Make this the organization default"
+                                }
+                              >
+                                <Building2 className="w-4 h-4" />
                               </button>
                             )}
                             <button
